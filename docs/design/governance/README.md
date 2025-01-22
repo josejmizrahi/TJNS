@@ -20,15 +20,33 @@ Sistema descentralizado para la toma de decisiones comunitarias, basado en block
 ```
 
 #### Componentes
-1. Smart Contracts
+1. Sistema de Contratos XRPL
    - Propuestas
+     * Metadata almacenada en IPFS
+     * Hash de propuesta en XRPL
+     * Validación por oracles externos
    - Votación
+     * Escrow condicional por voto
+     * Verificación por trust lines
+     * Peso de votos por balance
    - Ejecución automática
+     * Oracles para condiciones externas
+     * Liberación de escrow por tiempo
+     * Servicios externos para lógica compleja
 
 2. Sistema de Validación
    - Verificación de elegibilidad
+     * Trust lines autorizados
+     * Multi-firma para validación
+     * Verificación KYC externa
    - Anti-manipulación
+     * Timelock en escrows
+     * Firmas múltiples requeridas
+     * Auditoría on-chain
    - Auditoría de votos
+     * Tracking en XRPL
+     * Metadata en IPFS
+     * Reportes externos
 
 ### 2. Regiones Autónomas
 

@@ -92,14 +92,34 @@ El sistema de Identidad Digital Judía es el componente fundamental del JNS, pro
 - Node.js/TypeScript para APIs
 - PostgreSQL para datos relacionales
 - MongoDB para documentos
-- Ethereum para blockchain
+- XRPL para blockchain
 - Redis para caché
 
 ### Frontend
 - React/Next.js
 - Material-UI
 - D3.js para visualizaciones
-- Web3.js para blockchain
+- xrpl.js para blockchain
+
+### Adaptaciones XRPL
+
+#### 1. Perfiles Verificados (JewishID)
+- Implementación mediante Authorized Trust Lines
+- Cada perfil verificado requiere autorización explícita del emisor
+- Sistema de revocación mediante freeze de trust lines
+- Documentación KYC almacenada en IPFS con hash en XRPL
+
+#### 2. Sistema MitzvahPoints
+- Token fungible con Authorized Trust Lines
+- Emisión controlada por la plataforma
+- Tracking transparente en el ledger
+- Integración con escrow para recompensas automáticas
+
+#### 3. Árbol Genealógico Digital
+- NFTs para certificados de relación familiar
+- Metadata almacenada en IPFS
+- Referencias cruzadas mediante NFT URIs
+- Control de privacidad mediante authorized trust lines
 
 ### Seguridad
 - JWT para autenticación
@@ -115,12 +135,12 @@ interface JewishIDAPI {
   // Registro y Verificación
   register(userData: UserData): Promise<RegistrationResponse>;
   verify(documents: Document[]): Promise<VerificationStatus>;
-  updateStatus(userId: string, status: VerificationLevel): Promise<void>;
+  authorizeIdentity(userId: string): Promise<TrustSetResponse>;
   
   // Gestión de Credenciales
-  issueCredential(userId: string): Promise<Credential>;
-  revokeCredential(credentialId: string): Promise<void>;
-  validateCredential(credential: Credential): Promise<ValidationResult>;
+  setTrustLine(userId: string, currency: string): Promise<TrustLineResponse>;
+  freezeIdentity(userId: string): Promise<FreezeResponse>;
+  validateTrustLine(trustLine: TrustLine): Promise<ValidationResult>;
 }
 ```
 
