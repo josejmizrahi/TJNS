@@ -11,7 +11,12 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["blockchain", "xrpl", "identity", "community"],
+  "keywords": [
+    "blockchain",
+    "xrpl",
+    "identity",
+    "community"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
@@ -26,9 +31,17 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/dotenv-safe": "^8.1.6",
     "@types/express": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/mongoose": "^5.11.96",
+    "bcryptjs": "^2.4.3",
     "dotenv": "^16.4.7",
+    "dotenv-safe": "^9.1.0",
     "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.9.5",
     "xrpl": "^4.1.0"
   }
 }
