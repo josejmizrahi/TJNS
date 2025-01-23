@@ -1,53 +1,117 @@
 import { Client, Wallet, Payment, TrustSet } from 'xrpl';
 import { blockchainConfig, xrplClient } from '../config/blockchain';
+import { adapterFactory } from '../adapters';
+import { DatabaseAdapter } from '../adapters/supabase.adapter';
+import { TokenType, TransactionStatus, TrustLineStatus } from '../types/models';
 
 export class BlockchainService {
   private client: Client;
+  private database: DatabaseAdapter;
 
   constructor() {
     this.client = xrplClient;
+    this.database = adapterFactory.getDatabaseAdapter();
   }
 
   async createTrustLine(
     userWallet: Wallet,
-    currency: string,
+    currency: TokenType,
     limit: string
   ): Promise<void> {
-    const trustSet: TrustSet = {
-      TransactionType: 'TrustSet',
-      Account: userWallet.address,
-      LimitAmount: {
+    try {
+      // Update trust line status to pending in Supabase
+      await this.database.updateTokenBalance(
+        userWallet.address,
         currency,
-        issuer: blockchainConfig.coldWallet!,
-        value: limit,
-      },
-    };
+        '0',
+        { trustLineStatus: TrustLineStatus.PENDING }
+      );
 
-    const prepared = await this.client.autofill(trustSet);
-    const signed = userWallet.sign(prepared);
-    await this.client.submitAndWait(signed.tx_blob);
+      const trustSet: TrustSet = {
+        TransactionType: 'TrustSet',
+        Account: userWallet.address,
+        LimitAmount: {
+          currency,
+          issuer: blockchainConfig.coldWallet!,
+          value: limit,
+        },
+      };
+
+      const prepared = await this.client.autofill(trustSet);
+      const signed = userWallet.sign(prepared);
+      await this.client.submitAndWait(signed.tx_blob);
+
+      // Update trust line status to active in Supabase
+      await this.database.updateTokenBalance(
+        userWallet.address,
+        currency,
+        '0',
+        { trustLineStatus: TrustLineStatus.ACTIVE }
+      );
+    } catch (error) {
+      // Update trust line status to failed in Supabase
+      await this.database.updateTokenBalance(
+        userWallet.address,
+        currency,
+        '0',
+        { trustLineStatus: TrustLineStatus.NONE }
+      );
+      throw error;
+    }
   }
 
   async transferTokens(
     fromWallet: Wallet,
     toAddress: string,
     amount: string,
-    currency: string
+    currency: TokenType
   ): Promise<void> {
-    const payment: Payment = {
-      TransactionType: 'Payment',
-      Account: fromWallet.address,
-      Destination: toAddress,
-      Amount: {
-        currency,
-        value: amount,
-        issuer: blockchainConfig.coldWallet!,
-      },
-    };
+    // Create transaction record in pending state
+    const transaction = await this.database.createTransaction({
+      fromUserId: fromWallet.address,
+      toUserId: toAddress,
+      amount,
+      currency,
+      status: TransactionStatus.PENDING
+    });
 
-    const prepared = await this.client.autofill(payment);
-    const signed = fromWallet.sign(prepared);
-    await this.client.submitAndWait(signed.tx_blob);
+    try {
+      const payment: Payment = {
+        TransactionType: 'Payment',
+        Account: fromWallet.address,
+        Destination: toAddress,
+        Amount: {
+          currency,
+          value: amount,
+          issuer: blockchainConfig.coldWallet!,
+        },
+      };
+
+      const prepared = await this.client.autofill(payment);
+      const signed = fromWallet.sign(prepared);
+      const result = await this.client.submitAndWait(signed.tx_blob);
+
+      // Update transaction record with success status and hash
+      await this.database.updateTransaction(transaction.id, {
+        status: TransactionStatus.COMPLETED,
+        xrplTxHash: result.result.hash
+      });
+
+      // Update balances in Supabase
+      const fromBalance = await this.getBalance(fromWallet.address, currency);
+      const toBalance = await this.getBalance(toAddress, currency);
+
+      await Promise.all([
+        this.database.updateTokenBalance(fromWallet.address, currency, fromBalance),
+        this.database.updateTokenBalance(toAddress, currency, toBalance)
+      ]);
+    } catch (error) {
+      // Update transaction record with failed status
+      await this.database.updateTransaction(transaction.id, {
+        status: TransactionStatus.FAILED
+      });
+      throw error;
+    }
   }
 
   async getWallet(address: string): Promise<Wallet> {
@@ -59,7 +123,7 @@ export class BlockchainService {
 
   async getBalance(
     address: string,
-    currency: string
+    currency: TokenType
   ): Promise<string> {
     const balances = await this.client.getBalances(address);
     const balance = balances.find(
@@ -67,7 +131,13 @@ export class BlockchainService {
         b.currency === currency && 
         b.issuer === blockchainConfig.coldWallet
     );
-    return balance ? balance.value : '0';
+
+    const xrplBalance = balance ? balance.value : '0';
+
+    // Update balance in Supabase
+    await this.database.updateTokenBalance(address, currency, xrplBalance);
+
+    return xrplBalance;
   }
 
   async createEscrow(

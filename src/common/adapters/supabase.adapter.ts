@@ -17,6 +17,7 @@ export interface DatabaseAdapter {
   getTokenBalance(userId: string, currency: string): Promise<string>;
   updateTokenBalance(userId: string, currency: string, balance: string, data?: Partial<TokenBalance>): Promise<TokenBalance>;
   createTransaction(transaction: Partial<Transaction>): Promise<Transaction>;
+  updateTransaction(id: string, data: Partial<Transaction>): Promise<Transaction>;
   getMitzvahPointsRule(action: string): Promise<MitzvahPointsRuleEntity | null>;
 }
 
@@ -150,6 +151,18 @@ export class SupabaseAdapter implements DatabaseAdapter {
       
     if (error) throw error;
     return data;
+  }
+
+  async updateTransaction(id: string, data: Partial<Transaction>): Promise<Transaction> {
+    const { data: updated, error } = await this.client
+      .from('transactions')
+      .update(data)
+      .eq('id', id)
+      .select()
+      .single();
+      
+    if (error) throw error;
+    return updated;
   }
 
   async getMitzvahPointsRule(action: string): Promise<MitzvahPointsRuleEntity | null> {
