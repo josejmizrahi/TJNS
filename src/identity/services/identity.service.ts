@@ -9,15 +9,13 @@ import {
   UserStatus,
   SupabaseAuthUser
 } from '../../common/types/models';
-import { IPFSService } from '../../common/utils/ipfs';
-import { EncryptionService } from '../../common/utils/encryption';
 import { BlockchainService } from '../../common/utils/blockchain';
 import { AppError } from '../../common/middleware/error';
 import { supabase } from '../../common/config/supabase';
+import { HybridStorageService, StorageType } from '../../common/utils/storage';
 
 import { adapterFactory } from '../../common/adapters';
 import { DatabaseAdapter } from '../../common/adapters/supabase.adapter';
-import { StorageAdapter } from '../../common/adapters/storage.adapter';
 import { RealtimeAdapter } from '../../common/adapters/realtime.adapter';
 
 export class IdentityService {
@@ -26,12 +24,10 @@ export class IdentityService {
   private realtime: RealtimeAdapter;
 
   constructor(
-    private ipfs: IPFSService,
-    private encryption: EncryptionService,
+    private storage: HybridStorageService,
     private blockchain: BlockchainService
   ) {
     this.database = adapterFactory.getDatabaseAdapter();
-    this.storage = adapterFactory.getStorageAdapter();
     this.realtime = adapterFactory.getRealtimeAdapter();
   }
 
@@ -107,19 +103,19 @@ export class IdentityService {
       throw new AppError(404, 'User not found');
     }
 
-    // Upload encrypted document to Supabase Storage
-    const filePath = await this.storage.uploadFile(
-      'documents',
-      `kyc/${userId}/${documentType}_${Date.now()}`,
+    // Upload document using hybrid storage
+    const { path, tag } = await this.storage.uploadKYCDocument(
+      userId,
+      documentType,
       file
     );
     
     // Create document record
     const document = await this.database.uploadDocument({
       type: documentType,
-      ipfsCid: filePath,
+      ipfsCid: path,
       status: DocumentStatus.PENDING,
-      encryptionTag: this.encryption.generateTag()
+      encryptionTag: tag
     });
 
     return document;
@@ -170,7 +166,7 @@ export class IdentityService {
     );
   }
 
-  async createWallet(userId: string): Promise<string> {
+  async createWallet(_userId: string): Promise<string> {
     // Generate new XRPL wallet
     // Associate with user
     // Setup initial trust lines
@@ -191,7 +187,7 @@ export class IdentityService {
         // Requires email verification
         return user.status === UserStatus.ACTIVE;
 
-      case VerificationLevel.VERIFIED:
+      case VerificationLevel.VERIFIED: {
         // Requires verified ID and synagogue documents
         const documents = await this.database.getDocumentsByUserId(userId);
         const hasVerifiedId = documents.some(
@@ -201,6 +197,7 @@ export class IdentityService {
           doc => doc.type === DocumentType.SYNAGOGUE_LETTER && doc.status === DocumentStatus.VERIFIED
         );
         return hasVerifiedId && hasVerifiedSynagogue;
+      }
 
       case VerificationLevel.COMPLETE:
         // Additional requirements for complete verification
@@ -213,7 +210,10 @@ export class IdentityService {
 }
 
 export default new IdentityService(
-  new IPFSService(),
-  new EncryptionService(),
+  new HybridStorageService(
+    adapterFactory.getStorageAdapter(),
+    new IPFSService(),
+    new EncryptionService()
+  ),
   new BlockchainService()
 );

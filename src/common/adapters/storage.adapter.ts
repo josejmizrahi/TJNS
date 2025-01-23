@@ -32,7 +32,7 @@ export class SupabaseStorageAdapter implements StorageAdapter {
 
   async downloadFile(bucket: string, path: string): Promise<Buffer> {
     // Extract encryption tag from path
-    const [filePath, tag] = path.split('_');
+    const [_, tag] = path.split('_');
     
     const { data, error } = await this.client
       .storage
