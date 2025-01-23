@@ -1,12 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import { config } from '../config/app';
+import { supabase } from '../config/supabase';
+import { UserRole, VerificationLevel } from '../types/models';
 
 export interface AuthRequest extends Request {
   user?: {
     id: string;
-    role: string;
-    verificationLevel: string;
+    role: UserRole;
+    verificationLevel: VerificationLevel;
+    email?: string;
   };
 }
 
@@ -22,20 +23,37 @@ export const authenticate = async (
       return res.status(401).json({ message: 'Authentication required' });
     }
 
-    const decoded = jwt.verify(token, config.jwt.secret) as {
-      id: string;
-      role: string;
-      verificationLevel: string;
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+
+    if (error || !user) {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+
+    // Get user metadata from Supabase
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('role, verification_level')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile) {
+      return res.status(401).json({ message: 'User profile not found' });
+    }
+
+    req.user = {
+      id: user.id,
+      email: user.email,
+      role: profile.role as UserRole,
+      verificationLevel: profile.verification_level as VerificationLevel
     };
 
-    req.user = decoded;
     next();
   } catch (error) {
     return res.status(401).json({ message: 'Invalid token' });
   }
 };
 
-export const authorize = (...roles: string[]) => {
+export const authorize = (...roles: UserRole[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
       return res.status(401).json({ message: 'Authentication required' });
@@ -49,13 +67,19 @@ export const authorize = (...roles: string[]) => {
   };
 };
 
-export const requireVerificationLevel = (level: string) => {
+export const requireVerificationLevel = (level: VerificationLevel) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
       return res.status(401).json({ message: 'Authentication required' });
     }
 
-    const verificationLevels = ['none', 'basic', 'verified', 'complete'];
+    const verificationLevels = [
+      VerificationLevel.NONE,
+      VerificationLevel.BASIC,
+      VerificationLevel.VERIFIED,
+      VerificationLevel.COMPLETE
+    ];
+    
     const userLevel = verificationLevels.indexOf(req.user.verificationLevel);
     const requiredLevel = verificationLevels.indexOf(level);
 

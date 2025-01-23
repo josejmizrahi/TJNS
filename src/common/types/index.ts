@@ -36,14 +36,27 @@ export interface ApiResponse<T> {
 
 export type AsyncResponse<T> = Promise<ApiResponse<T>>;
 
+// Supabase Types
+export interface SupabaseAuthUser {
+  id: string;
+  email?: string;
+  user_metadata?: {
+    first_name?: string;
+    last_name?: string;
+    role?: string;
+    verification_level?: string;
+  };
+}
+
 // Express Request augmentation
 declare global {
   namespace Express {
     interface Request {
       user?: {
         id: string;
-        role: string;
-        verificationLevel: string;
+        role: UserRole;
+        verificationLevel: VerificationLevel;
+        email?: string;
       };
     }
   }

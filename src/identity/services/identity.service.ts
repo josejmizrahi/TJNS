@@ -6,12 +6,14 @@ import {
   DocumentStatus, 
   VerificationLevel,
   UserRole,
-  UserStatus
+  UserStatus,
+  SupabaseAuthUser
 } from '../../common/types/models';
 import { IPFSService } from '../../common/utils/ipfs';
 import { EncryptionService } from '../../common/utils/encryption';
 import { BlockchainService } from '../../common/utils/blockchain';
 import { AppError } from '../../common/middleware/error';
+import { supabase } from '../../common/config/supabase';
 
 import { adapterFactory } from '../../common/adapters';
 import { DatabaseAdapter } from '../../common/adapters/supabase.adapter';
@@ -38,11 +40,25 @@ export class IdentityService {
     password: string,
     profile: Omit<UserProfile, 'documents'>
   ): Promise<User> {
-    const hashedPassword = await EncryptionService.hashPassword(password);
-    
-    const user = await this.database.createUser({
+    // Create Supabase auth user
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
-      passwordHash: hashedPassword,
+      password,
+      options: {
+        data: {
+          first_name: profile.firstName,
+          last_name: profile.lastName
+        }
+      }
+    });
+
+    if (authError) throw new AppError(400, authError.message);
+    if (!authData.user) throw new AppError(400, 'Failed to create user');
+
+    // Create user profile
+    const user = await this.database.createUser({
+      id: authData.user.id,
+      email,
       profile: {
         ...profile,
         documents: []
@@ -52,13 +68,33 @@ export class IdentityService {
       status: UserStatus.PENDING
     });
 
+    // Notify about user registration
+    await this.realtime.publish(
+      'user_registrations',
+      'user_registered',
+      { userId: user.id }
+    );
+
     return user;
   }
 
   async verifyEmail(userId: string, token: string): Promise<void> {
-    // Verify email token
-    // Update user verification status
-    throw new Error('Not implemented');
+    const { error } = await supabase.auth.verifyOtp({
+      token_hash: token,
+      type: 'email'
+    });
+
+    if (error) throw new AppError(400, error.message);
+
+    // Update user verification level
+    await this.updateVerificationLevel(userId, VerificationLevel.BASIC);
+
+    // Notify about email verification
+    await this.realtime.publish(
+      `user_updates_${userId}`,
+      'email_verified',
+      { userId }
+    );
   }
 
   async uploadKYCDocument(
