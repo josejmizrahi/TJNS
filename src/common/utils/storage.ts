@@ -43,7 +43,7 @@ export class HybridStorageService {
         return { path: filePath, type: StorageType.SUPABASE };
       }
     } catch (error) {
-      throw new AppError(500, `Failed to upload file: ${error.message}`);
+      throw new AppError(500, `Failed to upload file: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -66,7 +66,7 @@ export class HybridStorageService {
         return this.supabaseStorage.downloadFile(bucket, path);
       }
     } catch (error) {
-      throw new AppError(500, `Failed to download file: ${error.message}`);
+      throw new AppError(500, `Failed to download file: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -83,7 +83,7 @@ export class HybridStorageService {
       }
       // Note: IPFS files cannot be deleted, they can only become unreferenced
     } catch (error) {
-      throw new AppError(500, `Failed to delete file: ${error.message}`);
+      throw new AppError(500, `Failed to delete file: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

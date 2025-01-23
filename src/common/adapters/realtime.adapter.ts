@@ -105,6 +105,25 @@ export class SupabaseRealtimeAdapter implements RealtimeAdapter {
     }
   }
 
+  async unsubscribe(channel: string): Promise<void> {
+    const realtimeChannel = this.channels.get(channel);
+    if (realtimeChannel) {
+      await realtimeChannel.unsubscribe();
+      this.channels.delete(channel);
+    }
+  }
+
+  async publish<T = unknown>(channel: string, event: string, payload: T): Promise<void> {
+    const realtimeChannel = this.channels.get(channel);
+    if (realtimeChannel) {
+      await realtimeChannel.send({
+        type: 'broadcast',
+        event,
+        payload
+      });
+    }
+  }
+
   // Helper methods for specific use cases
   async subscribeToUserUpdates(userId: string, callback: (payload: RealtimePostgresChangesPayload<User>) => void): Promise<void> {
     await this.subscribeToChanges(

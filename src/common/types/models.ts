@@ -1,3 +1,5 @@
+import { StorageType } from '../utils/storage';
+
 // Base Interfaces
 export interface BaseEntity {
   id: string;
@@ -30,7 +32,7 @@ export interface KYCDocument {
   userId: string;
   type: DocumentType;
   ipfsCid: string;
-  encryptionTag: string;
+  storageType: StorageType;
   status: DocumentStatus;
   verifiedAt?: Date;
   verifiedBy?: string;

@@ -1,4 +1,4 @@
-import { SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient, createClient } from '@supabase/supabase-js';
 import { EncryptionService } from '../utils/encryption';
 
 export interface StorageAdapter {
@@ -13,7 +13,7 @@ export class SupabaseStorageAdapter implements StorageAdapter {
   private encryption: EncryptionService;
 
   constructor(supabaseUrl: string, supabaseKey: string) {
-    this.client = new SupabaseClient(supabaseUrl, supabaseKey);
+    this.client = createClient(supabaseUrl, supabaseKey);
     this.encryption = new EncryptionService();
   }
 

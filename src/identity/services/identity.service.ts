@@ -12,20 +12,24 @@ import { BlockchainService } from '../../common/utils/blockchain';
 import { AppError } from '../../common/middleware/error';
 import { supabase } from '../../common/config/supabase';
 import { HybridStorageService } from '../../common/utils/storage';
+import { IPFSService } from '../../common/utils/ipfs';
+import { EncryptionService } from '../../common/utils/encryption';
 
 import { adapterFactory } from '../../common/adapters';
 import { DatabaseAdapter } from '../../common/adapters/supabase.adapter';
 import { RealtimeAdapter } from '../../common/adapters/realtime.adapter';
+// StorageAdapter import removed as it's not used
 
 export class IdentityService {
   private database: DatabaseAdapter;
-  private storage: StorageAdapter;
+  private storage: HybridStorageService;
   private realtime: RealtimeAdapter;
 
   constructor(
-    private storage: HybridStorageService,
+    storageService: HybridStorageService,
     private blockchain: BlockchainService
   ) {
+    this.storage = storageService;
     this.database = adapterFactory.getDatabaseAdapter();
     this.realtime = adapterFactory.getRealtimeAdapter();
   }
@@ -103,7 +107,7 @@ export class IdentityService {
     }
 
     // Upload document using hybrid storage
-    const { path, tag } = await this.storage.uploadKYCDocument(
+    const { path, type: storageType } = await this.storage.uploadKYCDocument(
       userId,
       documentType,
       file
@@ -111,10 +115,11 @@ export class IdentityService {
     
     // Create document record
     const document = await this.database.uploadDocument({
+      userId,
       type: documentType,
       ipfsCid: path,
-      status: DocumentStatus.PENDING,
-      encryptionTag: tag
+      storageType,
+      status: DocumentStatus.PENDING
     });
 
     return document;
