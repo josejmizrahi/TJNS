@@ -1,11 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
-import { validate } from '../../common/middleware/validation';
-import { authenticate } from '../../common/middleware/auth';
 import listingService from '../services/listing.service';
 import { ListingCategory } from '../models/listing.model';
 import { z } from 'zod';
 
-const createListingSchema = z.object({
+// Schema for request validation
+export const createListingSchema = z.object({
   title: z.string().min(3).max(100),
   description: z.string().min(10).max(1000),
   price: z.number().positive(),

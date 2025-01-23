@@ -1,6 +1,4 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
-import { ListingStatus, ListingCategory } from '../../marketplace/models/listing.model';
-import { StorageType } from '../../common/utils/storage';
 
 export class CreateMarketplaceListings1737665218 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
