@@ -10,6 +10,7 @@ import { adapterFactory } from './common/adapters';
 // Import routes
 import identityRoutes from './identity/routes/identity.routes';
 import tokenRoutes from './token/routes/token.routes';
+import marketplaceRoutes from './marketplace/routes/listing.routes';
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use(`${config.apiPrefix}/identity`, identityRoutes);
 app.use(`${config.apiPrefix}/tokens`, tokenRoutes);
+app.use(`${config.apiPrefix}/marketplace`, marketplaceRoutes);
 
 // Error handling
 app.use(notFound);
