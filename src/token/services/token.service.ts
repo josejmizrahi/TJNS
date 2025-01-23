@@ -4,20 +4,51 @@ import { TokenBalance, Transaction, TokenType, TransactionType, TransactionStatu
 import { AppError } from '../../common/middleware/error';
 import { blockchainConfig } from '../../common/config/blockchain';
 
+import { adapterFactory } from '../../common/adapters';
+import { DatabaseAdapter } from '../../common/adapters/supabase.adapter';
+import { RealtimeAdapter } from '../../common/adapters/realtime.adapter';
+import { AppError } from '../../common/middleware/error';
+
 export class TokenService {
+  private database: DatabaseAdapter;
+  private realtime: RealtimeAdapter;
+
   constructor(
     private blockchain: BlockchainService
-  ) {}
+  ) {
+    this.database = adapterFactory.getDatabaseAdapter();
+    this.realtime = adapterFactory.getRealtimeAdapter();
+  }
 
   async setupTrustLine(
     userId: string,
     currency: TokenType,
     limit: string
   ): Promise<void> {
-    // Validate user verification level
+    const user = await this.database.getUserById(userId);
+    if (!user) {
+      throw new AppError(404, 'User not found');
+    }
+
+    if (user.verificationLevel === VerificationLevel.NONE) {
+      throw new AppError(403, 'User must complete basic verification first');
+    }
+
     // Create trust line on XRPL
+    await this.blockchain.createTrustLine(user.walletAddress!, currency, limit);
+
     // Record trust line status
-    throw new Error('Not implemented');
+    await this.database.updateTokenBalance(userId, currency, {
+      trustLineStatus: TrustLineStatus.ACTIVE,
+      balance: '0'
+    });
+
+    // Notify about trust line creation
+    await this.realtime.publish(
+      `user_updates_${userId}`,
+      'trust_line_created',
+      { userId, currency }
+    );
   }
 
   async transfer(
@@ -26,19 +57,71 @@ export class TokenService {
     amount: string,
     currency: TokenType
   ): Promise<Transaction> {
-    // Validate balances and trust lines
+    // Validate transfer requirements
+    await this.validateTransfer(fromUserId, toUserId, amount, currency);
+
+    // Get user wallets
+    const fromUser = await this.database.getUserById(fromUserId);
+    const toUser = await this.database.getUserById(toUserId);
+
+    if (!fromUser?.walletAddress || !toUser?.walletAddress) {
+      throw new AppError(400, 'Both users must have active wallets');
+    }
+
     // Execute transfer on XRPL
+    const txHash = await this.blockchain.transferTokens(
+      fromUser.walletAddress,
+      toUser.walletAddress,
+      amount,
+      currency
+    );
+
     // Record transaction
-    throw new Error('Not implemented');
+    const transaction = await this.database.createTransaction({
+      fromUserId,
+      toUserId,
+      amount,
+      currency,
+      type: TransactionType.TRANSFER,
+      status: TransactionStatus.COMPLETED,
+      xrplTxHash: txHash
+    });
+
+    // Update balances
+    const fromBalance = await this.database.getTokenBalance(fromUserId, currency);
+    const toBalance = await this.database.getTokenBalance(toUserId, currency);
+
+    await this.database.updateTokenBalance(
+      fromUserId,
+      currency,
+      (parseFloat(fromBalance!) - parseFloat(amount)).toString()
+    );
+
+    await this.database.updateTokenBalance(
+      toUserId,
+      currency,
+      (parseFloat(toBalance!) + parseFloat(amount)).toString()
+    );
+
+    // Notify about transaction
+    await this.realtime.publish(
+      'transactions',
+      'transfer_completed',
+      { transaction }
+    );
+
+    return transaction;
   }
 
   async getBalance(
     userId: string,
     currency: TokenType
   ): Promise<string> {
-    // Get balance from XRPL
-    // Return formatted balance
-    throw new Error('Not implemented');
+    const balance = await this.database.getTokenBalance(userId, currency);
+    if (!balance) {
+      return '0';
+    }
+    return balance;
   }
 
   async calculateMitzvahPoints(
@@ -46,10 +129,26 @@ export class TokenService {
     action: string,
     metadata: any
   ): Promise<number> {
-    // Calculate points based on action type
-    // Apply multipliers and caps
-    // Return calculated points
-    throw new Error('Not implemented');
+    // Get rule for action type
+    const rule = await this.database.getMitzvahPointsRule(action);
+    if (!rule || !rule.isActive) {
+      throw new AppError(400, `No active rule found for action: ${action}`);
+    }
+
+    // Calculate base points with multiplier
+    let points = rule.basePoints * rule.multiplier;
+
+    // Apply any contextual multipliers from metadata
+    if (metadata.multiplier) {
+      points *= metadata.multiplier;
+    }
+
+    // Cap points if maximum is defined
+    if (rule.maxPoints) {
+      points = Math.min(points, rule.maxPoints);
+    }
+
+    return Math.floor(points);
   }
 
   async awardMitzvahPoints(
@@ -57,10 +156,36 @@ export class TokenService {
     points: number,
     reason: string
   ): Promise<void> {
-    // Validate points calculation
-    // Issue MVP tokens
-    // Record award transaction
-    throw new Error('Not implemented');
+    const user = await this.database.getUserById(userId);
+    if (!user) {
+      throw new AppError(404, 'User not found');
+    }
+
+    // Create transaction record
+    const transaction = await this.database.createTransaction({
+      fromUserId: blockchainConfig.coldWallet!, // System wallet
+      toUserId: userId,
+      amount: points.toString(),
+      currency: TokenType.MVP,
+      type: TransactionType.REWARD,
+      status: TransactionStatus.COMPLETED,
+      metadata: { reason }
+    });
+
+    // Update user's MVP balance
+    const currentBalance = await this.getBalance(userId, TokenType.MVP);
+    await this.database.updateTokenBalance(
+      userId,
+      TokenType.MVP,
+      (parseFloat(currentBalance) + points).toString()
+    );
+
+    // Notify about points award
+    await this.realtime.publish(
+      `user_updates_${userId}`,
+      'mitzvah_points_awarded',
+      { userId, points, reason, transaction }
+    );
   }
 
   private async validateTransfer(
@@ -69,10 +194,37 @@ export class TokenService {
     amount: string,
     currency: TokenType
   ): Promise<boolean> {
-    // Check user verification levels
-    // Validate trust lines
-    // Check balance sufficiency
-    throw new Error('Not implemented');
+    // Check users exist and are verified
+    const [fromUser, toUser] = await Promise.all([
+      this.database.getUserById(fromUserId),
+      this.database.getUserById(toUserId)
+    ]);
+
+    if (!fromUser || !toUser) {
+      throw new AppError(404, 'One or both users not found');
+    }
+
+    if (fromUser.verificationLevel === VerificationLevel.NONE ||
+        toUser.verificationLevel === VerificationLevel.NONE) {
+      throw new AppError(403, 'Both users must be verified to transfer tokens');
+    }
+
+    // Check trust lines are active
+    const [fromBalance, toBalance] = await Promise.all([
+      this.database.getTokenBalance(fromUserId, currency),
+      this.database.getTokenBalance(toUserId, currency)
+    ]);
+
+    if (!fromBalance || !toBalance) {
+      throw new AppError(400, 'Trust lines not established');
+    }
+
+    // Check sufficient balance
+    if (parseFloat(fromBalance) < parseFloat(amount)) {
+      throw new AppError(400, 'Insufficient balance');
+    }
+
+    return true;
   }
 }
 
