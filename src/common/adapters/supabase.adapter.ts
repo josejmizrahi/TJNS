@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { User, KYCDocument, TokenBalance, Transaction } from '../types/models';
+import { User, KYCDocument, TokenBalance, Transaction, MitzvahPointsRuleEntity } from '../types/models';
 
 export interface DatabaseAdapter {
   // User operations
@@ -10,12 +10,14 @@ export interface DatabaseAdapter {
   // KYC operations
   uploadDocument(document: Partial<KYCDocument>): Promise<KYCDocument>;
   getDocumentById(id: string): Promise<KYCDocument | null>;
+  getDocumentsByUserId(userId: string): Promise<KYCDocument[]>;
   updateDocument(id: string, data: Partial<KYCDocument>): Promise<KYCDocument>;
   
   // Token operations
-  getTokenBalance(userId: string, currency: string): Promise<TokenBalance | null>;
-  updateTokenBalance(userId: string, currency: string, amount: string): Promise<TokenBalance>;
+  getTokenBalance(userId: string, currency: string): Promise<string>;
+  updateTokenBalance(userId: string, currency: string, balance: string, data?: Partial<TokenBalance>): Promise<TokenBalance>;
   createTransaction(transaction: Partial<Transaction>): Promise<Transaction>;
+  getMitzvahPointsRule(action: string): Promise<MitzvahPointsRuleEntity | null>;
 }
 
 export class SupabaseAdapter implements DatabaseAdapter {
@@ -83,6 +85,16 @@ export class SupabaseAdapter implements DatabaseAdapter {
     return data;
   }
 
+  async getDocumentsByUserId(userId: string): Promise<KYCDocument[]> {
+    const { data, error } = await this.client
+      .from('kyc_documents')
+      .select('*')
+      .eq('user_id', userId);
+      
+    if (error) throw error;
+    return data || [];
+  }
+
   async updateDocument(id: string, data: Partial<KYCDocument>): Promise<KYCDocument> {
     const { data: updated, error } = await this.client
       .from('kyc_documents')
@@ -96,31 +108,37 @@ export class SupabaseAdapter implements DatabaseAdapter {
   }
 
   // Token operations
-  async getTokenBalance(userId: string, currency: string): Promise<TokenBalance | null> {
+  async getTokenBalance(userId: string, currency: string): Promise<string> {
     const { data, error } = await this.client
       .from('token_balances')
-      .select('*')
+      .select('balance')
       .eq('user_id', userId)
       .eq('currency', currency)
       .single();
       
-    if (error) throw error;
-    return data;
+    if (error) return '0';
+    return data?.balance || '0';
   }
 
-  async updateTokenBalance(userId: string, currency: string, amount: string): Promise<TokenBalance> {
-    const { data, error } = await this.client
+  async updateTokenBalance(
+    userId: string, 
+    currency: string, 
+    balance: string,
+    data?: Partial<TokenBalance>
+  ): Promise<TokenBalance> {
+    const { data: updated, error } = await this.client
       .from('token_balances')
       .upsert({
         user_id: userId,
         currency,
-        balance: amount
+        balance,
+        ...data
       })
       .select()
       .single();
       
     if (error) throw error;
-    return data;
+    return updated;
   }
 
   async createTransaction(transaction: Partial<Transaction>): Promise<Transaction> {
@@ -131,6 +149,18 @@ export class SupabaseAdapter implements DatabaseAdapter {
       .single();
       
     if (error) throw error;
+    return data;
+  }
+
+  async getMitzvahPointsRule(action: string): Promise<MitzvahPointsRuleEntity | null> {
+    const { data, error } = await this.client
+      .from('mitzvah_points_rules')
+      .select('*')
+      .eq('action_type', action)
+      .eq('is_active', true)
+      .single();
+      
+    if (error) return null;
     return data;
   }
 }

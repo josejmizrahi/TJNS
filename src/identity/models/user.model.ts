@@ -1,80 +1,89 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { User, UserProfile, UserRole, VerificationLevel, UserStatus } from '../../common/types/models';
+import { 
+  User, 
+  UserProfile, 
+  UserRole, 
+  VerificationLevel, 
+  UserStatus,
+  DocumentType,
+  DocumentStatus
+} from '../../common/types/models';
 
-@Entity('users')
-export class UserEntity implements User {
-  @PrimaryGeneratedColumn('uuid')
+// Database table types for Supabase
+export interface UserRecord {
   id: string;
-
-  @Column({ unique: true })
   email: string;
-
-  @Column()
-  passwordHash: string;
-
-  @Column({
-    type: 'enum',
-    enum: UserRole,
-    default: UserRole.USER
-  })
+  password_hash: string;
   role: UserRole;
-
-  @Column({
-    type: 'enum',
-    enum: VerificationLevel,
-    default: VerificationLevel.NONE
-  })
-  verificationLevel: VerificationLevel;
-
-  @Column({
-    type: 'enum',
-    enum: UserStatus,
-    default: UserStatus.PENDING
-  })
+  verification_level: VerificationLevel;
   status: UserStatus;
-
-  @Column('jsonb')
   profile: UserProfile;
-
-  @Column({ nullable: true })
-  walletAddress?: string;
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
+  wallet_address?: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
-@Entity('kyc_documents')
-export class KYCDocumentEntity {
-  @PrimaryGeneratedColumn('uuid')
+export interface KYCDocumentRecord {
   id: string;
+  user_id: string;
+  type: DocumentType;
+  ipfs_cid: string;
+  encryption_tag: string;
+  status: DocumentStatus;
+  verified_at?: Date;
+  verified_by?: string;
+  created_at: Date;
+  updated_at: Date;
+}
 
-  @Column()
-  userId: string;
-
-  @Column()
-  type: string;
-
-  @Column()
-  ipfsCid: string;
-
-  @Column()
-  encryptionTag: string;
-
-  @Column()
-  status: string;
-
-  @Column({ nullable: true })
-  verifiedAt?: Date;
-
-  @Column({ nullable: true })
-  verifiedBy?: string;
-
-  @CreateDateColumn()
+// Domain models
+export class UserEntity implements User {
+  id: string;
+  email: string;
+  passwordHash: string;
+  role: UserRole;
+  verificationLevel: VerificationLevel;
+  status: UserStatus;
+  profile: UserProfile;
+  walletAddress?: string;
   createdAt: Date;
-
-  @UpdateDateColumn()
   updatedAt: Date;
+
+  constructor(record: UserRecord) {
+    this.id = record.id;
+    this.email = record.email;
+    this.passwordHash = record.password_hash;
+    this.role = record.role;
+    this.verificationLevel = record.verification_level;
+    this.status = record.status;
+    this.profile = record.profile;
+    this.walletAddress = record.wallet_address;
+    this.createdAt = record.created_at;
+    this.updatedAt = record.updated_at;
+  }
+}
+
+export class KYCDocumentEntity {
+  id: string;
+  userId: string;
+  type: DocumentType;
+  ipfsCid: string;
+  encryptionTag: string;
+  status: DocumentStatus;
+  verifiedAt?: Date;
+  verifiedBy?: string;
+  createdAt: Date;
+  updatedAt: Date;
+
+  constructor(record: KYCDocumentRecord) {
+    this.id = record.id;
+    this.userId = record.user_id;
+    this.type = record.type;
+    this.ipfsCid = record.ipfs_cid;
+    this.encryptionTag = record.encryption_tag;
+    this.status = record.status;
+    this.verifiedAt = record.verified_at;
+    this.verifiedBy = record.verified_by;
+    this.createdAt = record.created_at;
+    this.updatedAt = record.updated_at;
+  }
 }

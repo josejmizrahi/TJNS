@@ -24,6 +24,21 @@ const documentUploadSchema = z.object({
 });
 
 export class IdentityController {
+  async verifyEmail(req: Request, res: Response, next: NextFunction) {
+    try {
+      await identityService.verifyEmail(
+        req.params.userId,
+        req.params.token
+      );
+      res.status(200).json({
+        status: 'success',
+        message: 'Email verified successfully'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async register(req: Request, res: Response, next: NextFunction) {
     try {
       const user = await identityService.registerUser(

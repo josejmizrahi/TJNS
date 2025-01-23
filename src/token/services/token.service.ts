@@ -1,13 +1,19 @@
 import { Client } from 'xrpl';
 import { BlockchainService } from '../../common/utils/blockchain';
-import { TokenBalance, Transaction, TokenType, TransactionType, TransactionStatus } from '../../common/types/models';
+import { 
+  TokenBalance, 
+  Transaction, 
+  TokenType, 
+  TransactionType, 
+  TransactionStatus,
+  TrustLineStatus,
+  VerificationLevel
+} from '../../common/types/models';
 import { AppError } from '../../common/middleware/error';
 import { blockchainConfig } from '../../common/config/blockchain';
-
 import { adapterFactory } from '../../common/adapters';
 import { DatabaseAdapter } from '../../common/adapters/supabase.adapter';
 import { RealtimeAdapter } from '../../common/adapters/realtime.adapter';
-import { AppError } from '../../common/middleware/error';
 
 export class TokenService {
   private database: DatabaseAdapter;
@@ -35,12 +41,12 @@ export class TokenService {
     }
 
     // Create trust line on XRPL
-    await this.blockchain.createTrustLine(user.walletAddress!, currency, limit);
+    const wallet = await this.blockchain.getWallet(user.walletAddress!);
+    await this.blockchain.createTrustLine(wallet, currency, limit);
 
     // Record trust line status
-    await this.database.updateTokenBalance(userId, currency, {
-      trustLineStatus: TrustLineStatus.ACTIVE,
-      balance: '0'
+    await this.database.updateTokenBalance(userId, currency, '0', {
+      trustLineStatus: TrustLineStatus.ACTIVE
     });
 
     // Notify about trust line creation
@@ -70,7 +76,7 @@ export class TokenService {
 
     // Execute transfer on XRPL
     const txHash = await this.blockchain.transferTokens(
-      fromUser.walletAddress,
+      await this.blockchain.getWallet(fromUser.walletAddress),
       toUser.walletAddress,
       amount,
       currency
@@ -84,7 +90,7 @@ export class TokenService {
       currency,
       type: TransactionType.TRANSFER,
       status: TransactionStatus.COMPLETED,
-      xrplTxHash: txHash
+      xrplTxHash: typeof txHash === 'string' ? txHash : undefined
     });
 
     // Update balances
@@ -168,8 +174,7 @@ export class TokenService {
       amount: points.toString(),
       currency: TokenType.MVP,
       type: TransactionType.REWARD,
-      status: TransactionStatus.COMPLETED,
-      metadata: { reason }
+      status: TransactionStatus.COMPLETED
     });
 
     // Update user's MVP balance

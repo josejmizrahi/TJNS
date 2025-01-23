@@ -1,4 +1,13 @@
-import { User, UserProfile, KYCDocument, DocumentType, DocumentStatus, VerificationLevel } from '../../common/types/models';
+import { 
+  User, 
+  UserProfile, 
+  KYCDocument, 
+  DocumentType, 
+  DocumentStatus, 
+  VerificationLevel,
+  UserRole,
+  UserStatus
+} from '../../common/types/models';
 import { IPFSService } from '../../common/utils/ipfs';
 import { EncryptionService } from '../../common/utils/encryption';
 import { BlockchainService } from '../../common/utils/blockchain';
@@ -7,10 +16,12 @@ import { AppError } from '../../common/middleware/error';
 import { adapterFactory } from '../../common/adapters';
 import { DatabaseAdapter } from '../../common/adapters/supabase.adapter';
 import { StorageAdapter } from '../../common/adapters/storage.adapter';
+import { RealtimeAdapter } from '../../common/adapters/realtime.adapter';
 
 export class IdentityService {
   private database: DatabaseAdapter;
   private storage: StorageAdapter;
+  private realtime: RealtimeAdapter;
 
   constructor(
     private ipfs: IPFSService,
@@ -19,6 +30,7 @@ export class IdentityService {
   ) {
     this.database = adapterFactory.getDatabaseAdapter();
     this.storage = adapterFactory.getStorageAdapter();
+    this.realtime = adapterFactory.getRealtimeAdapter();
   }
 
   async registerUser(
@@ -26,12 +38,15 @@ export class IdentityService {
     password: string,
     profile: Omit<UserProfile, 'documents'>
   ): Promise<User> {
-    const hashedPassword = await this.encryption.hashPassword(password);
+    const hashedPassword = await EncryptionService.hashPassword(password);
     
     const user = await this.database.createUser({
       email,
       passwordHash: hashedPassword,
-      profile,
+      profile: {
+        ...profile,
+        documents: []
+      },
       role: UserRole.USER,
       verificationLevel: VerificationLevel.NONE,
       status: UserStatus.PENDING
@@ -51,16 +66,24 @@ export class IdentityService {
     documentType: DocumentType,
     file: Buffer
   ): Promise<KYCDocument> {
+    const user = await this.database.getUserById(userId);
+    if (!user) {
+      throw new AppError(404, 'User not found');
+    }
+
     // Upload encrypted document to Supabase Storage
-    const filePath = await this.storage.uploadKYCDocument(userId, documentType, file);
+    const filePath = await this.storage.uploadFile(
+      'documents',
+      `kyc/${userId}/${documentType}_${Date.now()}`,
+      file
+    );
     
     // Create document record
     const document = await this.database.uploadDocument({
-      userId,
       type: documentType,
       ipfsCid: filePath,
-      encryptionTag: '', // Set by storage adapter
-      status: DocumentStatus.PENDING
+      status: DocumentStatus.PENDING,
+      encryptionTag: this.encryption.generateTag()
     });
 
     return document;
@@ -104,8 +127,7 @@ export class IdentityService {
     });
 
     // Notify relevant services about verification level change
-    const realtimeAdapter = adapterFactory.getRealtimeAdapter();
-    await realtimeAdapter.publish(
+    await this.realtime.publish(
       `user_updates_${userId}`,
       'verification_level_changed',
       { userId, newLevel }

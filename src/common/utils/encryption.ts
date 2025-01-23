@@ -14,6 +14,10 @@ export class EncryptionService {
     this.iv = Buffer.from(process.env.ENCRYPTION_IV, 'hex');
   }
 
+  generateTag(): string {
+    return crypto.randomBytes(16).toString('hex');
+  }
+
   encrypt(data: string): { encryptedData: string; tag: string } {
     const cipher = crypto.createCipheriv(
       securityConfig.encryption.algorithm,

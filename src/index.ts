@@ -3,8 +3,9 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { config } from './common/config/app';
 import { errorHandler, notFound } from './common/middleware/error';
-import { postgresConnection, connectMongoDB } from './common/config/database';
+import { supabase } from './common/config/database';
 import { connectXRPL } from './common/config/blockchain';
+import { adapterFactory } from './common/adapters';
 
 // Import routes
 import identityRoutes from './identity/routes/identity.routes';
@@ -26,15 +27,17 @@ app.use(`${config.apiPrefix}/tokens`, tokenRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
-// Database initialization
-const initializeDatabase = async () => {
+// Initialize services
+const initializeServices = async () => {
   try {
-    await postgresConnection.initialize();
-    console.log('PostgreSQL connected successfully');
-    
-    await connectMongoDB();
-    console.log('MongoDB connected successfully');
-    
+    // Initialize Supabase adapters
+    adapterFactory.initialize(
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_ANON_KEY!
+    );
+    console.log('Supabase initialized successfully');
+
+    // Initialize XRPL connection
     await connectXRPL();
     console.log('XRPL connected successfully');
   } catch (error) {
@@ -45,7 +48,7 @@ const initializeDatabase = async () => {
 
 // Start server
 const startServer = async () => {
-  await initializeDatabase();
+  await initializeServices();
   
   app.listen(config.port, () => {
     console.log(`Server running on port ${config.port}`);

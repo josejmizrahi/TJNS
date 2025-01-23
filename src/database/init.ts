@@ -1,43 +1,39 @@
-import { DataSource } from 'typeorm';
-import { postgresConnection } from '../common/config/database';
-import { UserEntity, KYCDocumentEntity } from '../identity/models/user.model';
-import { TokenBalanceEntity, TransactionEntity, MitzvahPointsRuleEntity } from '../token/models/token.model';
+import { supabase } from '../common/config/database';
 
 const initializeDatabase = async () => {
   try {
-    await postgresConnection.initialize();
-    console.log('Connected to PostgreSQL');
-
-    // Run migrations
-    await postgresConnection.runMigrations();
-    console.log('Migrations completed');
-
     // Initialize MitzvahPoints rules
-    const mitzvahPointsRules = [
-      {
-        actionType: 'VOLUNTEER',
-        basePoints: 10,
-        multiplier: 1.0,
-        maxPoints: 100
-      },
-      {
-        actionType: 'DONATION',
-        basePoints: 5,
-        multiplier: 1.0,
-        maxPoints: 50
-      },
-      {
-        actionType: 'EDUCATION',
-        basePoints: 8,
-        multiplier: 1.0,
-        maxPoints: 80
-      }
-    ];
+    const { error } = await supabase
+      .from('mitzvah_points_rules')
+      .upsert([
+        {
+          action_type: 'VOLUNTEER',
+          base_points: 10,
+          multiplier: 1.0,
+          max_points: 100,
+          is_active: true
+        },
+        {
+          action_type: 'DONATION',
+          base_points: 5,
+          multiplier: 1.0,
+          max_points: 50,
+          is_active: true
+        },
+        {
+          action_type: 'EDUCATION',
+          base_points: 8,
+          multiplier: 1.0,
+          max_points: 80,
+          is_active: true
+        }
+      ], { onConflict: 'action_type' });
 
-    const ruleRepository = postgresConnection.getRepository(MitzvahPointsRuleEntity);
-    await ruleRepository.save(mitzvahPointsRules);
+    if (error) {
+      throw error;
+    }
+
     console.log('MitzvahPoints rules initialized');
-
     console.log('Database initialization completed successfully');
   } catch (error) {
     console.error('Database initialization failed:', error);

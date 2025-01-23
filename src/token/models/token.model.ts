@@ -1,98 +1,106 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { TokenBalance, Transaction, TokenType, TransactionType, TransactionStatus } from '../../common/types/models';
+import { TokenBalance, Transaction, TokenType, TransactionType, TransactionStatus, TrustLineStatus } from '../../common/types/models';
 
-@Entity('token_balances')
-export class TokenBalanceEntity implements TokenBalance {
-  @PrimaryGeneratedColumn('uuid')
+// Database table types for Supabase
+export interface TokenBalanceRecord {
   id: string;
-
-  @Column()
-  userId: string;
-
-  @Column({
-    type: 'enum',
-    enum: TokenType
-  })
+  user_id: string;
   currency: TokenType;
-
-  @Column()
   balance: string;
-
-  @Column()
-  trustLineStatus: string;
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
+  trust_line_status: TrustLineStatus;
+  created_at: Date;
+  updated_at: Date;
 }
 
-@Entity('transactions')
-export class TransactionEntity implements Transaction {
-  @PrimaryGeneratedColumn('uuid')
+export interface TransactionRecord {
   id: string;
-
-  @Column()
-  fromUserId: string;
-
-  @Column()
-  toUserId: string;
-
-  @Column()
+  from_user_id: string;
+  to_user_id: string;
   amount: string;
-
-  @Column({
-    type: 'enum',
-    enum: TokenType
-  })
   currency: TokenType;
-
-  @Column({
-    type: 'enum',
-    enum: TransactionType
-  })
   type: TransactionType;
-
-  @Column({
-    type: 'enum',
-    enum: TransactionStatus
-  })
   status: TransactionStatus;
-
-  @Column({ nullable: true })
-  xrplTxHash?: string;
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
+  xrpl_tx_hash?: string;
+  metadata?: Record<string, any>;
+  created_at: Date;
+  updated_at: Date;
 }
 
-@Entity('mitzvah_points_rules')
-export class MitzvahPointsRuleEntity {
-  @PrimaryGeneratedColumn('uuid')
+export interface MitzvahPointsRuleRecord {
   id: string;
-
-  @Column()
-  actionType: string;
-
-  @Column()
-  basePoints: number;
-
-  @Column({ type: 'float', default: 1.0 })
+  action_type: string;
+  base_points: number;
   multiplier: number;
+  max_points?: number;
+  is_active: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
 
-  @Column({ nullable: true })
-  maxPoints?: number;
-
-  @Column({ default: true })
-  isActive: boolean;
-
-  @CreateDateColumn()
+// Domain models
+export class TokenBalanceEntity implements TokenBalance {
+  id: string;
+  userId: string;
+  currency: TokenType;
+  balance: string;
+  trustLineStatus: TrustLineStatus;
   createdAt: Date;
-
-  @UpdateDateColumn()
   updatedAt: Date;
+
+  constructor(record: TokenBalanceRecord) {
+    this.id = record.id;
+    this.userId = record.user_id;
+    this.currency = record.currency;
+    this.balance = record.balance;
+    this.trustLineStatus = record.trust_line_status;
+    this.createdAt = record.created_at;
+    this.updatedAt = record.updated_at;
+  }
+}
+
+export class TransactionEntity implements Transaction {
+  id: string;
+  fromUserId: string;
+  toUserId: string;
+  amount: string;
+  currency: TokenType;
+  type: TransactionType;
+  status: TransactionStatus;
+  xrplTxHash?: string;
+  createdAt: Date;
+  updatedAt: Date;
+
+  constructor(record: TransactionRecord) {
+    this.id = record.id;
+    this.fromUserId = record.from_user_id;
+    this.toUserId = record.to_user_id;
+    this.amount = record.amount;
+    this.currency = record.currency;
+    this.type = record.type;
+    this.status = record.status;
+    this.xrplTxHash = record.xrpl_tx_hash;
+    this.createdAt = record.created_at;
+    this.updatedAt = record.updated_at;
+  }
+}
+
+export class MitzvahPointsRuleEntity {
+  id: string;
+  actionType: string;
+  basePoints: number;
+  multiplier: number;
+  maxPoints?: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+
+  constructor(record: MitzvahPointsRuleRecord) {
+    this.id = record.id;
+    this.actionType = record.action_type;
+    this.basePoints = record.base_points;
+    this.multiplier = record.multiplier;
+    this.maxPoints = record.max_points;
+    this.isActive = record.is_active;
+    this.createdAt = record.created_at;
+    this.updatedAt = record.updated_at;
+  }
 }

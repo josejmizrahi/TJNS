@@ -1,35 +1,71 @@
-import { DataSource } from 'typeorm';
+import { createClient } from '@supabase/supabase-js';
 import { config as dotenvConfig } from 'dotenv';
-import mongoose from 'mongoose';
 
 dotenvConfig();
 
-// PostgreSQL Connection
-export const postgresConnection = new DataSource({
-  type: 'postgres',
-  host: process.env.POSTGRES_HOST || 'localhost',
-  port: parseInt(process.env.POSTGRES_PORT || '5432', 10),
-  username: process.env.POSTGRES_USER || 'jns_user',
-  password: process.env.POSTGRES_PASSWORD,
-  database: process.env.POSTGRES_DB || 'jns_db',
-  entities: ['src/**/entities/*.ts'],
-  migrations: ['src/migrations/*.ts'],
-  synchronize: process.env.NODE_ENV === 'development',
-  logging: process.env.NODE_ENV === 'development',
-});
+if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+  throw new Error('Missing Supabase configuration. Please check your environment variables.');
+}
 
-// MongoDB Connection
-export const connectMongoDB = async () => {
+// Initialize Supabase client
+export const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY,
+  {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true
+    },
+    db: {
+      schema: 'public'
+    },
+    global: {
+      headers: {
+        'x-application-name': 'jns'
+      }
+    }
+  }
+);
+
+// Initialize admin client if service key is available
+export const supabaseAdmin = process.env.SUPABASE_SERVICE_KEY
+  ? createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_KEY,
+      {
+        auth: {
+          autoRefreshToken: true,
+          persistSession: true,
+          detectSessionInUrl: true
+        },
+        db: {
+          schema: 'public'
+        },
+        global: {
+          headers: {
+            'x-application-name': 'jns-admin'
+          }
+        }
+      }
+    )
+  : null;
+
+// Test database connection
+export const testConnection = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/jns');
-    console.log('MongoDB connected successfully');
+    const { data, error } = await supabase.from('users').select('count').single();
+    if (error) throw error;
+    console.log('Supabase connection successful');
+    return true;
   } catch (error) {
-    console.error('MongoDB connection error:', error);
-    process.exit(1);
+    console.error('Supabase connection error:', error);
+    return false;
   }
 };
 
 export default {
-  postgresConnection,
-  connectMongoDB,
+  supabase,
+  supabaseAdmin,
+  testConnection
 };

@@ -28,7 +28,26 @@ export type IPFSHash = string;
 // Utility Types
 export type Optional<T> = T | undefined;
 export type Nullable<T> = T | null;
+export interface ApiResponse<T> {
+  status: 'success' | 'error';
+  data?: T;
+  message?: string;
+}
+
 export type AsyncResponse<T> = Promise<ApiResponse<T>>;
+
+// Express Request augmentation
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        id: string;
+        role: string;
+        verificationLevel: string;
+      };
+    }
+  }
+}
 
 // Configuration Types
 export interface DatabaseConfig {

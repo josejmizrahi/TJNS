@@ -26,6 +26,8 @@ export interface UserProfile {
 }
 
 export interface KYCDocument {
+  id: string;
+  userId: string;
   type: DocumentType;
   ipfsCid: string;
   encryptionTag: string;
@@ -160,6 +162,17 @@ export enum DocumentStatus {
   REJECTED = 'rejected'
 }
 
+export interface MitzvahPointsRuleEntity {
+  id: string;
+  actionType: string;
+  basePoints: number;
+  multiplier: number;
+  maxPoints?: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export enum TokenType {
   SHK = 'SHK',
   MVP = 'MVP'
@@ -242,10 +255,23 @@ export enum KosherStatus {
   NOT_APPLICABLE = 'not_applicable'
 }
 
+export enum ListingStatus {
+  ACTIVE = 'active',
+  SOLD = 'sold',
+  CANCELLED = 'cancelled',
+  SUSPENDED = 'suspended'
+}
+
 export enum EscrowStatus {
   CREATED = 'created',
   FUNDED = 'funded',
   EXECUTED = 'executed',
   CANCELLED = 'cancelled',
   DISPUTED = 'disputed'
+}
+
+export interface Relationship {
+  type: 'parent' | 'child' | 'spouse' | 'sibling';
+  memberId: string;
+  metadata?: Record<string, any>;
 }

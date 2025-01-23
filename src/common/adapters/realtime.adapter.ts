@@ -22,10 +22,11 @@ export class SupabaseRealtimeAdapter implements RealtimeAdapter {
 
     const realtimeChannel = this.client
       .channel(channel)
-      .on('postgres_changes', {
-        event,
-        schema: 'public'
-      }, callback)
+      .on(
+        'broadcast',
+        { event: event },
+        callback
+      )
       .subscribe();
 
     this.channels.set(channel, realtimeChannel);

@@ -50,6 +50,13 @@ export class BlockchainService {
     await this.client.submitAndWait(signed.tx_blob);
   }
 
+  async getWallet(address: string): Promise<Wallet> {
+    // For development/testing, create a deterministic wallet from address
+    // TODO: Implement proper wallet management with secure key storage
+    const seed = 'sn' + Buffer.from(address).toString('hex').slice(0, 29);
+    return Wallet.fromSeed(seed);
+  }
+
   async getBalance(
     address: string,
     currency: string

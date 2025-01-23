@@ -1,4 +1,4 @@
-import { SupabaseClient, FileObject } from '@supabase/supabase-js';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { EncryptionService } from '../utils/encryption';
 
 export interface StorageAdapter {
