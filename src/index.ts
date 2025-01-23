@@ -37,6 +37,38 @@ const initializeServices = async () => {
     );
     console.log('Supabase initialized successfully');
 
+    // Initialize realtime features
+    const realtime = adapterFactory.getRealtimeAdapter();
+    
+    // Subscribe to system-wide events
+    await realtime.subscribeToChanges(
+      'user_profiles',
+      'UPDATE',
+      (payload) => {
+        // Handle user profile updates (e.g., verification level changes)
+        console.log('User profile updated:', payload.new.id);
+      }
+    );
+
+    await realtime.subscribeToChanges(
+      'transactions',
+      'INSERT',
+      (payload) => {
+        // Handle new transactions (e.g., for system monitoring)
+        console.log('New transaction:', payload.new.id);
+      }
+    );
+
+    // Setup presence tracking
+    await realtime.subscribeToPresence(
+      'online_users',
+      (state) => {
+        // Handle online users state changes
+        const onlineCount = Object.keys(state).length;
+        console.log(`Online users: ${onlineCount}`);
+      }
+    );
+
     // Initialize XRPL connection
     await connectXRPL();
     console.log('XRPL connected successfully');
@@ -60,12 +92,36 @@ startServer().catch((error) => {
   process.exit(1);
 });
 
+// Handle realtime connection issues
+const handleRealtimeError = async (error: Error) => {
+  console.error('Realtime connection error:', error);
+  try {
+    // Attempt to reinitialize realtime features
+    const realtime = adapterFactory.getRealtimeAdapter();
+    await realtime.subscribeToOnlineUsers((state) => {
+      const onlineCount = Object.keys(state).length;
+      console.log(`Reconnected. Online users: ${onlineCount}`);
+    });
+  } catch (retryError) {
+    console.error('Failed to reconnect realtime:', retryError);
+    process.exit(1);
+  }
+};
+
 process.on('unhandledRejection', (error) => {
   console.error('Unhandled rejection:', error);
-  process.exit(1);
+  if (error instanceof Error && error.message.includes('realtime')) {
+    handleRealtimeError(error).catch(() => process.exit(1));
+  } else {
+    process.exit(1);
+  }
 });
 
 process.on('uncaughtException', (error) => {
   console.error('Uncaught exception:', error);
-  process.exit(1);
+  if (error.message.includes('realtime')) {
+    handleRealtimeError(error).catch(() => process.exit(1));
+  } else {
+    process.exit(1);
+  }
 });
