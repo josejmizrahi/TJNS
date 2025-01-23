@@ -27,9 +27,9 @@ export const blockchainConfig = {
 export const connectXRPL = async () => {
   try {
     await xrplClient.connect();
-    console.log('Connected to XRPL successfully');
   } catch (error) {
-    console.error('XRPL connection error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`XRPL connection error: ${errorMessage}`);
     process.exit(1);
   }
 };

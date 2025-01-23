@@ -1,7 +1,6 @@
-import { Client } from 'xrpl';
+// XRPL client is imported from blockchain config
 import { BlockchainService } from '../../common/utils/blockchain';
 import { 
-  TokenBalance, 
   Transaction, 
   TokenType, 
   TransactionType, 
@@ -133,7 +132,7 @@ export class TokenService {
   async calculateMitzvahPoints(
     userId: string,
     action: string,
-    metadata: any
+    metadata: Record<string, unknown>
   ): Promise<number> {
     // Get rule for action type
     const rule = await this.database.getMitzvahPointsRule(action);

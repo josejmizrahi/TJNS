@@ -2,7 +2,8 @@ import { Client, Wallet, Payment, TrustSet } from 'xrpl';
 import { blockchainConfig, xrplClient } from '../config/blockchain';
 import { adapterFactory } from '../adapters';
 import { DatabaseAdapter } from '../adapters/supabase.adapter';
-import { TokenType, TransactionStatus, TrustLineStatus } from '../types/models';
+import { TokenType, TransactionStatus, TrustLineStatus, EscrowStatus } from '../types/models';
+import { AppError } from '../middleware/error';
 
 export class BlockchainService {
   private client: Client;
@@ -48,7 +49,7 @@ export class BlockchainService {
         '0',
         { trustLineStatus: TrustLineStatus.ACTIVE }
       );
-    } catch (error) {
+    } catch (error: unknown) {
       // Update trust line status to failed in Supabase
       await this.database.updateTokenBalance(
         userWallet.address,
@@ -56,7 +57,9 @@ export class BlockchainService {
         '0',
         { trustLineStatus: TrustLineStatus.NONE }
       );
-      throw error;
+      throw error instanceof Error 
+        ? new AppError(500, `Trust line creation failed: ${error.message}`)
+        : new AppError(500, 'Trust line creation failed');
     }
   }
 
@@ -105,12 +108,15 @@ export class BlockchainService {
         this.database.updateTokenBalance(fromWallet.address, currency, fromBalance),
         this.database.updateTokenBalance(toAddress, currency, toBalance)
       ]);
-    } catch (error) {
+    } catch (error: unknown) {
       // Update transaction record with failed status
       await this.database.updateTransaction(transaction.id, {
-        status: TransactionStatus.FAILED
+        status: TransactionStatus.FAILED,
+        ...(error instanceof Error && { errorMessage: error.message })
       });
-      throw error;
+      throw error instanceof Error
+        ? new AppError(500, `Token transfer failed: ${error.message}`)
+        : new AppError(500, 'Token transfer failed');
     }
   }
 
@@ -144,20 +150,42 @@ export class BlockchainService {
     fromWallet: Wallet,
     toAddress: string,
     amount: string,
-    currency: string,
-    condition: string,
-    cancelAfter: number
+    currency: TokenType,
+    _condition: string,
+    _cancelAfter: number
   ): Promise<void> {
-    // Implement escrow creation logic
-    // This will be expanded based on specific escrow requirements
+    // Create escrow record in pending state
+    const escrow = await this.database.createEscrow({
+      fromUserId: fromWallet.address,
+      toUserId: toAddress,
+      amount,
+      currency,
+      status: EscrowStatus.CREATED
+    });
+
+    try {
+      // TODO: Implement XRPL escrow creation
+      throw new AppError(501, 'Escrow creation not implemented');
+    } catch (error: unknown) {
+      await this.database.updateEscrow(escrow.id, {
+        status: EscrowStatus.CANCELLED,
+        ...(error instanceof Error && { errorMessage: error.message })
+      });
+      throw error instanceof Error
+        ? new AppError(500, `Escrow creation failed: ${error.message}`)
+        : new AppError(500, 'Escrow creation failed');
+    }
   }
 
   async executeHook(
-    hookName: string,
-    params: any
-  ): Promise<any> {
-    // Implement hook execution logic
-    // This will be expanded based on specific hook requirements
+    hookName: keyof typeof blockchainConfig.hooks,
+    _params: Record<string, unknown>
+  ): Promise<Record<string, unknown>> {
+    if (!blockchainConfig.hooks[hookName]) {
+      throw new AppError(400, `Hook ${hookName} not configured`);
+    }
+    // TODO: Implement hook execution
+    throw new AppError(501, 'Hook execution not implemented');
   }
 }
 

@@ -6,13 +6,12 @@ import {
   DocumentStatus, 
   VerificationLevel,
   UserRole,
-  UserStatus,
-  SupabaseAuthUser
+  UserStatus
 } from '../../common/types/models';
 import { BlockchainService } from '../../common/utils/blockchain';
 import { AppError } from '../../common/middleware/error';
 import { supabase } from '../../common/config/supabase';
-import { HybridStorageService, StorageType } from '../../common/utils/storage';
+import { HybridStorageService } from '../../common/utils/storage';
 
 import { adapterFactory } from '../../common/adapters';
 import { DatabaseAdapter } from '../../common/adapters/supabase.adapter';

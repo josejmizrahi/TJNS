@@ -8,16 +8,14 @@ config();
 const { SUPABASE_URL, SUPABASE_ANON_KEY } = process.env;
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  console.error('Missing required Supabase environment variables');
-  process.exit(1);
+  throw new Error('Missing required Supabase environment variables');
 }
 
 // Try to initialize Supabase client
 try {
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  console.log('✓ Supabase environment variables loaded successfully');
-  console.log('✓ Supabase client initialized');
+  createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  // Environment variables and client initialization successful
 } catch (error) {
-  console.error('Failed to initialize Supabase client:', error);
-  process.exit(1);
+  const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+  throw new Error(`Failed to initialize Supabase client: ${errorMessage}`);
 }

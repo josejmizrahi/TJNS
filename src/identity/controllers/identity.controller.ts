@@ -1,27 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { validate } from '../../common/middleware/validation';
-import { authenticate, authorize } from '../../common/middleware/auth';
 import identityService from '../services/identity.service';
-import { UserRole, VerificationLevel } from '../../common/types/models';
-import { z } from 'zod';
 
-// Validation schemas
-const registerSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(12),
-  profile: z.object({
-    firstName: z.string(),
-    lastName: z.string(),
-    dateOfBirth: z.string(),
-    synagogue: z.string().optional(),
-    community: z.string().optional()
-  })
-});
-
-const documentUploadSchema = z.object({
-  documentType: z.string(),
-  file: z.any()
-});
+// Validation schemas will be moved to a separate validation module
 
 export class IdentityController {
   async verifyEmail(req: Request, res: Response, next: NextFunction) {

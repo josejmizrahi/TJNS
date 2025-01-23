@@ -52,6 +52,18 @@ export interface Transaction extends BaseEntity {
   type: TransactionType;
   status: TransactionStatus;
   xrplTxHash?: string;
+  errorMessage?: string;
+}
+
+export interface Escrow extends BaseEntity {
+  listingId: string;
+  buyerId: string;
+  sellerId: string;
+  amount: string;
+  currency: TokenType;
+  status: EscrowStatus;
+  xrplSequence?: number;
+  errorMessage?: string;
 }
 
 // Governance
@@ -273,5 +285,5 @@ export enum EscrowStatus {
 export interface Relationship {
   type: 'parent' | 'child' | 'spouse' | 'sibling';
   memberId: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }

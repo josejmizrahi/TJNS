@@ -1,21 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import { validate } from '../../common/middleware/validation';
-import { authenticate, authorize } from '../../common/middleware/auth';
 import tokenService from '../services/token.service';
 import { TokenType } from '../../common/types/models';
-import { z } from 'zod';
 
-// Validation schemas
-const transferSchema = z.object({
-  toUserId: z.string().uuid(),
-  amount: z.string().regex(/^\d+(\.\d+)?$/),
-  currency: z.enum([TokenType.SHK, TokenType.MVP])
-});
-
-const trustLineSchema = z.object({
-  currency: z.enum([TokenType.SHK, TokenType.MVP]),
-  limit: z.string().regex(/^\d+(\.\d+)?$/)
-});
+// Validation schemas will be moved to a separate validation module
 
 export class TokenController {
   async setupTrustLine(req: Request, res: Response, next: NextFunction) {

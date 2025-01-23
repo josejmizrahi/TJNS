@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authenticate, authorize } from '../../common/middleware/auth';
-import { validate } from '../../common/middleware/validation';
+// Validation middleware will be added when schemas are implemented
 import tokenController from '../controllers/token.controller';
 
 const router = Router();

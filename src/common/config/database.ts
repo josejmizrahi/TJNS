@@ -54,12 +54,12 @@ export const supabaseAdmin = process.env.SUPABASE_SERVICE_KEY
 // Test database connection
 export const testConnection = async () => {
   try {
-    const { data, error } = await supabase.from('users').select('count').single();
+    const { error } = await supabase.from('users').select('count').single();
     if (error) throw error;
-    console.log('Supabase connection successful');
     return true;
   } catch (error) {
-    console.error('Supabase connection error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Supabase connection error: ${errorMessage}`);
     return false;
   }
 };

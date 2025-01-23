@@ -20,7 +20,7 @@ export interface TransactionRecord {
   type: TransactionType;
   status: TransactionStatus;
   xrpl_tx_hash?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   created_at: Date;
   updated_at: Date;
 }

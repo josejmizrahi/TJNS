@@ -33,11 +33,10 @@ const initializeDatabase = async () => {
       throw error;
     }
 
-    console.log('MitzvahPoints rules initialized');
-    console.log('Database initialization completed successfully');
+    // Database initialization completed successfully
   } catch (error) {
-    console.error('Database initialization failed:', error);
-    process.exit(1);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Database initialization failed: ${errorMessage}`);
   }
 };
 

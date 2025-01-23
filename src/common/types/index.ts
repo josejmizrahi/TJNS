@@ -16,7 +16,7 @@ export interface DateRangeParams {
 
 export interface SearchParams {
   query?: string;
-  filters?: Record<string, any>;
+  filters?: Record<string, unknown>;
 }
 
 // Common Types
@@ -50,6 +50,7 @@ export interface SupabaseAuthUser {
 
 // Express Request augmentation
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       user?: {
@@ -98,7 +99,7 @@ export interface ServiceResult<T> {
 }
 
 // Event Types
-export interface Event<T = any> {
+export interface Event<T = unknown> {
   type: string;
   payload: T;
   timestamp: Date;
@@ -106,7 +107,7 @@ export interface Event<T = any> {
 }
 
 // Queue Types
-export interface QueueMessage<T = any> {
+export interface QueueMessage<T = unknown> {
   id: string;
   type: string;
   data: T;

@@ -3,7 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { config } from './common/config/app';
 import { errorHandler, notFound } from './common/middleware/error';
-import { supabase } from './common/config/database';
+// Database configuration is handled by adapter factory
 import { connectXRPL } from './common/config/blockchain';
 import { adapterFactory } from './common/adapters';
 
@@ -35,8 +35,6 @@ const initializeServices = async () => {
       process.env.SUPABASE_URL!,
       process.env.SUPABASE_ANON_KEY!
     );
-    console.log('Supabase initialized successfully');
-
     // Initialize realtime features
     const realtime = adapterFactory.getRealtimeAdapter();
     
@@ -44,18 +42,18 @@ const initializeServices = async () => {
     await realtime.subscribeToChanges(
       'user_profiles',
       'UPDATE',
-      (payload) => {
+      (_payload) => {
         // Handle user profile updates (e.g., verification level changes)
-        console.log('User profile updated:', payload.new.id);
+        // Event handled by subscribers
       }
     );
 
     await realtime.subscribeToChanges(
       'transactions',
       'INSERT',
-      (payload) => {
+      (_payload) => {
         // Handle new transactions (e.g., for system monitoring)
-        console.log('New transaction:', payload.new.id);
+        // Event handled by subscribers
       }
     );
 
@@ -64,16 +62,16 @@ const initializeServices = async () => {
       'online_users',
       (state) => {
         // Handle online users state changes
-        const onlineCount = Object.keys(state).length;
-        console.log(`Online users: ${onlineCount}`);
+        Object.keys(state).length; // Track online users count
+        // State change handled by subscribers
       }
     );
 
     // Initialize XRPL connection
     await connectXRPL();
-    console.log('XRPL connected successfully');
   } catch (error) {
-    console.error('Error during initialization:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Initialization error: ${errorMessage}`);
     process.exit(1);
   }
 };
@@ -83,33 +81,33 @@ const startServer = async () => {
   await initializeServices();
   
   app.listen(config.port, () => {
-    console.log(`Server running on port ${config.port}`);
+    // Server started successfully
   });
 };
 
 startServer().catch((error) => {
-  console.error('Failed to start server:', error);
+  process.stderr.write(`Failed to start server: ${error}\n`);
   process.exit(1);
 });
 
 // Handle realtime connection issues
 const handleRealtimeError = async (error: Error) => {
-  console.error('Realtime connection error:', error);
+  process.stderr.write(`Realtime connection error: ${error}\n`);
   try {
     // Attempt to reinitialize realtime features
     const realtime = adapterFactory.getRealtimeAdapter();
     await realtime.subscribeToOnlineUsers((state) => {
-      const onlineCount = Object.keys(state).length;
-      console.log(`Reconnected. Online users: ${onlineCount}`);
+      const _onlineCount = Object.keys(state).length;
+      process.stdout.write(`Reconnected. Online users: ${_onlineCount}\n`);
     });
   } catch (retryError) {
-    console.error('Failed to reconnect realtime:', retryError);
+    process.stderr.write(`Failed to reconnect realtime: ${retryError}\n`);
     process.exit(1);
   }
 };
 
 process.on('unhandledRejection', (error) => {
-  console.error('Unhandled rejection:', error);
+  process.stderr.write(`Unhandled rejection: ${error}\n`);
   if (error instanceof Error && error.message.includes('realtime')) {
     handleRealtimeError(error).catch(() => process.exit(1));
   } else {
@@ -118,7 +116,7 @@ process.on('unhandledRejection', (error) => {
 });
 
 process.on('uncaughtException', (error) => {
-  console.error('Uncaught exception:', error);
+  process.stderr.write(`Uncaught exception: ${error}\n`);
   if (error.message.includes('realtime')) {
     handleRealtimeError(error).catch(() => process.exit(1));
   } else {

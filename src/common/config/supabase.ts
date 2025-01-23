@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-import { config } from './app';
 
 if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
   throw new Error('Missing Supabase configuration. Please check your environment variables.');

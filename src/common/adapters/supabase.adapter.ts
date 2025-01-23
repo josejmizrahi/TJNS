@@ -18,6 +18,8 @@ export interface DatabaseAdapter {
   updateTokenBalance(userId: string, currency: string, balance: string, data?: Partial<TokenBalance>): Promise<TokenBalance>;
   createTransaction(transaction: Partial<Transaction>): Promise<Transaction>;
   updateTransaction(id: string, data: Partial<Transaction>): Promise<Transaction>;
+  createEscrow(escrow: Partial<Escrow>): Promise<Escrow>;
+  updateEscrow(id: string, data: Partial<Escrow>): Promise<Escrow>;
   getMitzvahPointsRule(action: string): Promise<MitzvahPointsRuleEntity | null>;
 }
 
@@ -156,6 +158,29 @@ export class SupabaseAdapter implements DatabaseAdapter {
   async updateTransaction(id: string, data: Partial<Transaction>): Promise<Transaction> {
     const { data: updated, error } = await this.client
       .from('transactions')
+      .update(data)
+      .eq('id', id)
+      .select()
+      .single();
+      
+    if (error) throw error;
+    return updated;
+  }
+
+  async createEscrow(escrow: Partial<Escrow>): Promise<Escrow> {
+    const { data, error } = await this.client
+      .from('escrows')
+      .insert(escrow)
+      .select()
+      .single();
+      
+    if (error) throw error;
+    return data;
+  }
+
+  async updateEscrow(id: string, data: Partial<Escrow>): Promise<Escrow> {
+    const { data: updated, error } = await this.client
+      .from('escrows')
       .update(data)
       .eq('id', id)
       .select()
