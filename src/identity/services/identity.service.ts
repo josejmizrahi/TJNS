@@ -4,23 +4,40 @@ import { EncryptionService } from '../../common/utils/encryption';
 import { BlockchainService } from '../../common/utils/blockchain';
 import { AppError } from '../../common/middleware/error';
 
+import { adapterFactory } from '../../common/adapters';
+import { DatabaseAdapter } from '../../common/adapters/supabase.adapter';
+import { StorageAdapter } from '../../common/adapters/storage.adapter';
+
 export class IdentityService {
+  private database: DatabaseAdapter;
+  private storage: StorageAdapter;
+
   constructor(
     private ipfs: IPFSService,
     private encryption: EncryptionService,
     private blockchain: BlockchainService
-  ) {}
+  ) {
+    this.database = adapterFactory.getDatabaseAdapter();
+    this.storage = adapterFactory.getStorageAdapter();
+  }
 
   async registerUser(
     email: string,
     password: string,
     profile: Omit<UserProfile, 'documents'>
   ): Promise<User> {
-    // Validate email format and check if already exists
-    // Hash password and create user record
-    // Initialize with basic verification level
-    // Return created user
-    throw new Error('Not implemented');
+    const hashedPassword = await this.encryption.hashPassword(password);
+    
+    const user = await this.database.createUser({
+      email,
+      passwordHash: hashedPassword,
+      profile,
+      role: UserRole.USER,
+      verificationLevel: VerificationLevel.NONE,
+      status: UserStatus.PENDING
+    });
+
+    return user;
   }
 
   async verifyEmail(userId: string, token: string): Promise<void> {
@@ -34,10 +51,19 @@ export class IdentityService {
     documentType: DocumentType,
     file: Buffer
   ): Promise<KYCDocument> {
-    // Upload encrypted document to IPFS
-    // Create document record with pending status
-    // Trigger verification process
-    throw new Error('Not implemented');
+    // Upload encrypted document to Supabase Storage
+    const filePath = await this.storage.uploadKYCDocument(userId, documentType, file);
+    
+    // Create document record
+    const document = await this.database.uploadDocument({
+      userId,
+      type: documentType,
+      ipfsCid: filePath,
+      encryptionTag: '', // Set by storage adapter
+      status: DocumentStatus.PENDING
+    });
+
+    return document;
   }
 
   async verifyDocument(
@@ -45,20 +71,45 @@ export class IdentityService {
     verifierId: string,
     approved: boolean
   ): Promise<void> {
-    // Verify authority of verifier
-    // Update document status
-    // Update user verification level if applicable
-    throw new Error('Not implemented');
+    const document = await this.database.getDocumentById(documentId);
+    if (!document) {
+      throw new Error('Document not found');
+    }
+
+    const status = approved ? DocumentStatus.VERIFIED : DocumentStatus.REJECTED;
+    await this.database.updateDocument(documentId, {
+      status,
+      verifiedAt: new Date(),
+      verifiedBy: verifierId
+    });
+
+    if (approved) {
+      // Update user verification level if all required documents are verified
+      await this.updateVerificationLevel(document.userId, VerificationLevel.VERIFIED);
+    }
   }
 
   async updateVerificationLevel(
     userId: string,
     newLevel: VerificationLevel
   ): Promise<void> {
-    // Check if requirements for new level are met
-    // Update user verification level
-    // Trigger any necessary blockchain updates
-    throw new Error('Not implemented');
+    const meetsRequirements = await this.validateVerificationRequirements(userId, newLevel);
+    if (!meetsRequirements) {
+      throw new Error(`User does not meet requirements for ${newLevel} verification level`);
+    }
+
+    await this.database.updateUser(userId, {
+      verificationLevel: newLevel,
+      status: UserStatus.ACTIVE
+    });
+
+    // Notify relevant services about verification level change
+    const realtimeAdapter = adapterFactory.getRealtimeAdapter();
+    await realtimeAdapter.publish(
+      `user_updates_${userId}`,
+      'verification_level_changed',
+      { userId, newLevel }
+    );
   }
 
   async createWallet(userId: string): Promise<string> {
@@ -72,10 +123,34 @@ export class IdentityService {
     userId: string,
     level: VerificationLevel
   ): Promise<boolean> {
-    // Check required documents for level
-    // Verify document statuses
-    // Additional checks based on level
-    throw new Error('Not implemented');
+    const user = await this.database.getUserById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    switch (level) {
+      case VerificationLevel.BASIC:
+        // Requires email verification
+        return user.status === UserStatus.ACTIVE;
+
+      case VerificationLevel.VERIFIED:
+        // Requires verified ID and synagogue documents
+        const documents = await this.database.getDocumentsByUserId(userId);
+        const hasVerifiedId = documents.some(
+          doc => doc.type === DocumentType.ID && doc.status === DocumentStatus.VERIFIED
+        );
+        const hasVerifiedSynagogue = documents.some(
+          doc => doc.type === DocumentType.SYNAGOGUE_LETTER && doc.status === DocumentStatus.VERIFIED
+        );
+        return hasVerifiedId && hasVerifiedSynagogue;
+
+      case VerificationLevel.COMPLETE:
+        // Additional requirements for complete verification
+        return user.verificationLevel === VerificationLevel.VERIFIED;
+
+      default:
+        return true;
+    }
   }
 }
 
