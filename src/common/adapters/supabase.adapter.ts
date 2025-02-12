@@ -1,4 +1,4 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { User, KYCDocument, TokenBalance, Transaction, MitzvahPointsRuleEntity, Escrow } from '../types/models';
 
 export interface DatabaseAdapter {

@@ -1,4 +1,5 @@
 import { User, KYCDocument } from '../types/models';
+import { JewishIdentityEntity } from '../../identity/models/jewish-id.model';
 
 export interface DatabaseAdapter {
   // User management
@@ -13,8 +14,8 @@ export interface DatabaseAdapter {
   updateDocument(id: string, data: Partial<KYCDocument>): Promise<KYCDocument>;
   
   // JewishID management
-  createJewishIdentity(data: any): Promise<any>;
-  getJewishIdentityById(id: string): Promise<any | null>;
-  getJewishIdentityByUserId(userId: string): Promise<any | null>;
-  updateJewishIdentity(id: string, data: any): Promise<any>;
+  createJewishIdentity(data: Partial<JewishIdentityEntity>): Promise<JewishIdentityEntity>;
+  getJewishIdentityById(id: string): Promise<JewishIdentityEntity | null>;
+  getJewishIdentityByUserId(userId: string): Promise<JewishIdentityEntity | null>;
+  updateJewishIdentity(id: string, data: Partial<JewishIdentityEntity>): Promise<JewishIdentityEntity>;
 }
