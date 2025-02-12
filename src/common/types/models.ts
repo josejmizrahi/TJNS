@@ -22,6 +22,8 @@ export interface UserProfile {
   firstName: string;
   lastName: string;
   dateOfBirth: Date;
+  synagogue?: string;
+  community?: string;
   documents: KYCDocument[];
   mfaEnabled: boolean;
   mfaSecret?: string;
