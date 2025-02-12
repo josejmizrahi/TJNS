@@ -1,6 +1,5 @@
 import { createHash, randomBytes } from 'crypto';
 import { authenticator } from 'otplib';
-import { AppError } from '../middleware/error';
 
 export class MFAService {
   static generateSecret(): string {
