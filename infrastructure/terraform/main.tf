@@ -6,9 +6,7 @@ terraform {
     }
   }
   # Backend configuration will be provided during deployment
-  backend "local" {
-    path = "terraform.tfstate"
-  }
+  backend "local" {}
 }
 
 provider "aws" {
