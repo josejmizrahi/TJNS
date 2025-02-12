@@ -5,7 +5,7 @@ import { TokenEntity } from '../../blockchain/models/token.model';
 import { JewishIdentityEntity } from '../../identity/models/jewish-id.model';
 import { ListingEntity, OfferEntity, TransactionEntity } from '../../marketplace/models';
 
-export const AppDataSource = new DataSource({
+const AppDataSource = new DataSource({
   type: 'postgres',
   url: process.env.DATABASE_URL,
   synchronize: false,

@@ -3,6 +3,8 @@ export interface StorageMetadata {
   mimeType: string;
   size: number;
   uploadedAt: string;
+  encryptionTag?: string;
+  documentType?: string;
 }
 
 export enum StorageType {
@@ -17,6 +19,10 @@ export interface IPFSService {
 }
 
 export interface StorageService {
-  uploadFile(path: string, data: Buffer): Promise<{ path: string; type: StorageType }>;
-  downloadFile(path: string): Promise<Buffer>;
+  uploadFile(path: string, data: Buffer, options?: {
+    type?: StorageType;
+    encrypted?: boolean;
+    metadata?: Record<string, unknown>;
+  }): Promise<{ path: string; type: StorageType }>;
+  downloadFile(path: string, type: StorageType): Promise<Buffer>;
 }
