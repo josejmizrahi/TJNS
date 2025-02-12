@@ -26,10 +26,15 @@ export interface DatabaseAdapter {
 import { supabase } from '../config/supabase';
 import { AppError } from '../middleware/error';
 import { JewishIdentityEntity } from '../../identity/models/jewish-id.model';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { EscrowEntity } from '../types/imports';
 
 export class SupabaseAdapter implements DatabaseAdapter {
-  private client = supabase;
-  constructor(private client = supabase) {}
+  private readonly client: SupabaseClient;
+
+  constructor() {
+    this.client = supabase;
+  }
 
   // JewishID methods
   async createJewishIdentity(data: Partial<JewishIdentityEntity>): Promise<JewishIdentityEntity> {
