@@ -2,7 +2,7 @@ import { User, KYCDocument } from '../types/models';
 import { JewishIdentityEntity } from '../../identity/models/jewish-id.model';
 import { TokenEntity, TokenType } from '../../blockchain/models/token.model';
 // Database types
-import type { Pool } from 'pg';
+import type { QueryResult } from 'pg';
 
 export interface DatabaseAdapter {
   // User management
@@ -17,7 +17,7 @@ export interface DatabaseAdapter {
   updateDocument(id: string, data: Partial<KYCDocument>): Promise<KYCDocument>;
   
   // Raw query execution
-  query(sql: string, params?: unknown[]): Promise<unknown>;
+  query(sql: string, params?: unknown[]): Promise<QueryResult>;
   
   // Token management
   createToken(data: Partial<TokenEntity>): Promise<TokenEntity>;
