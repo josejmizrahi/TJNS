@@ -1,7 +1,9 @@
+import 'reflect-metadata';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { config } from './common/config/app';
+import { initializeDatabase } from './common/config/typeorm';
 import { errorHandler, notFound } from './common/middleware/error';
 // Database configuration is handled by adapter factory
 import { connectXRPL } from './common/config/blockchain';
