@@ -1,4 +1,4 @@
-import { XrplClient } from 'xrpl';
+import { Client as XrplClient } from 'xrpl';
 import { TokenType } from '../models/token.model';
 import { config } from '../../common/config/app';
 

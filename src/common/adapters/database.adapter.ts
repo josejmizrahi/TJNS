@@ -1,5 +1,6 @@
 import { User, KYCDocument } from '../types/models';
 import { JewishIdentityEntity } from '../../identity/models/jewish-id.model';
+import { TokenEntity, TokenType } from '../../blockchain/models/token.model';
 
 export interface DatabaseAdapter {
   // User management
