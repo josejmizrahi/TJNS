@@ -118,10 +118,5 @@ export class JewishIdentityService {
   }
 }
 
-export default new JewishIdentityService(
-  new HybridStorageService(
-    adapterFactory.getStorageAdapter(),
-    adapterFactory.getIPFSService(),
-    adapterFactory.getEncryptionService()
-  )
-);
+const storageService = adapterFactory.getStorageAdapter();
+export default new JewishIdentityService(storageService);
