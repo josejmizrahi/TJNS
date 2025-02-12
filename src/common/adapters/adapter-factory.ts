@@ -2,14 +2,15 @@ import { DatabaseAdapter } from './database.adapter';
 import { SupabaseAdapter } from './supabase.adapter';
 import { IPFSAdapter } from './ipfs.adapter';
 import { EncryptionAdapter } from './encryption.adapter';
-import { JewishIdentityAdapter } from './jewish-id';
+import { StorageAdapter } from './storage.adapter';
+import { HybridStorageService } from '../utils/storage';
 
 class AdapterFactory {
   private static instance: AdapterFactory;
   private databaseAdapter?: DatabaseAdapter;
   private ipfsAdapter?: IPFSAdapter;
   private encryptionAdapter?: EncryptionAdapter;
-  private jewishIdAdapter?: JewishIdentityAdapter;
+  private storageAdapter?: HybridStorageService;
 
   private constructor() {}
 
@@ -41,11 +42,15 @@ class AdapterFactory {
     return this.encryptionAdapter;
   }
 
-  getJewishIdAdapter(): JewishIdentityAdapter {
-    if (!this.jewishIdAdapter) {
-      this.jewishIdAdapter = new JewishIdentityAdapter();
+  getStorageAdapter(): HybridStorageService {
+    if (!this.storageAdapter) {
+      this.storageAdapter = new HybridStorageService(
+        new StorageAdapter(),
+        this.getIPFSAdapter(),
+        this.getEncryptionAdapter()
+      );
     }
-    return this.jewishIdAdapter;
+    return this.storageAdapter;
   }
 }
 

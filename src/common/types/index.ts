@@ -2,7 +2,10 @@ export * from './models';
 export * from './responses';
 export * from './storage';
 export * from './jewish-id';
-export * from './escrow';
+
+// Re-export specific types to avoid conflicts
+export { Escrow as EscrowEntity } from './models';
+export { UserRole, VerificationLevel } from './models';
 
 // Request Types
 export interface PaginationParams {
