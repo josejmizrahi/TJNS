@@ -1,5 +1,5 @@
 import { supabase } from '../config/supabase';
-import { JewishIdentityEntity, HebrewNameType, JewishAffiliation } from '../../identity/models/jewish-id.model';
+import { JewishIdentityEntity } from '../../identity/models/jewish-id.model';
 import { AppError } from '../middleware/error';
 
 export class JewishIdentityAdapter {
