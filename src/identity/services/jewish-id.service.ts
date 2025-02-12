@@ -1,9 +1,10 @@
 import { JewishIdentityEntity, HebrewNameType, JewishAffiliation } from '../models/jewish-id.model';
 // Removed unused import
 import { AppError } from '../../common/middleware/error';
-import { DatabaseAdapter } from '../../common/adapters/supabase.adapter';
-import { adapterFactory } from '../../common/adapters';
+import { DatabaseAdapter } from '../../common/adapters/database.adapter';
+import { adapterFactory } from '../../common/adapters/adapter-factory';
 import { HybridStorageService } from '../../common/utils/storage';
+import { User } from '../../common/types/models';
 
 export interface CreateJewishIdentityDTO {
   userId: string;
@@ -34,12 +35,12 @@ export class JewishIdentityService {
   }
 
   async createIdentity(data: CreateJewishIdentityDTO): Promise<JewishIdentityEntity> {
-    const user = await this.database.getUserById(data.userId);
+    const user = await this.database.getUserById(data.userId) as User;
     if (!user) {
       throw new AppError(404, 'User not found');
     }
 
-    if (user.profile.jewishIdentityId) {
+    if (user.profile?.jewishIdentityId) {
       throw new AppError(400, 'User already has a Jewish identity profile');
     }
 
