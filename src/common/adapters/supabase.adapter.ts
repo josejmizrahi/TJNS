@@ -1,5 +1,5 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { User, KYCDocument, TokenBalance, Transaction, MitzvahPointsRuleEntity } from '../types/models';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { User, KYCDocument, TokenBalance, Transaction, MitzvahPointsRuleEntity, Escrow } from '../types/models';
 
 export interface DatabaseAdapter {
   // User operations
@@ -23,12 +23,61 @@ export interface DatabaseAdapter {
   getMitzvahPointsRule(action: string): Promise<MitzvahPointsRuleEntity | null>;
 }
 
-export class SupabaseAdapter implements DatabaseAdapter {
-  private client: SupabaseClient;
+import { supabase } from '../config/supabase';
+import { AppError } from '../middleware/error';
+import { JewishIdentityEntity } from '../../identity/models';
 
-  constructor(supabaseUrl: string, supabaseKey: string) {
-    this.client = createClient(supabaseUrl, supabaseKey);
+export class SupabaseAdapter implements DatabaseAdapter {
+  private readonly client: SupabaseClient;
+
+  constructor() {
+    this.client = supabase;
   }
+
+  // JewishID methods
+  async createJewishIdentity(data: Partial<JewishIdentityEntity>): Promise<JewishIdentityEntity> {
+    const { data: identity, error } = await this.client
+      .from('jewish_identities')
+      .insert(data)
+      .single();
+
+    if (error) throw new AppError(400, error.message);
+    return identity;
+  }
+
+  async getJewishIdentityById(id: string): Promise<JewishIdentityEntity | null> {
+    const { data, error } = await this.client
+      .from('jewish_identities')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw new AppError(400, error.message);
+    return data;
+  }
+
+  async getJewishIdentityByUserId(userId: string): Promise<JewishIdentityEntity | null> {
+    const { data, error } = await this.client
+      .from('jewish_identities')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') return null;
+    return data;
+  }
+
+  async updateJewishIdentity(id: string, data: Partial<JewishIdentityEntity>): Promise<JewishIdentityEntity> {
+    const { data: updated, error } = await this.client
+      .from('jewish_identities')
+      .update(data)
+      .eq('id', id)
+      .single();
+
+    if (error) throw new AppError(400, error.message);
+    return updated;
+  }
+  // Removed duplicate constructor and client declaration
 
   // User operations
   async createUser(user: Partial<User>): Promise<User> {
