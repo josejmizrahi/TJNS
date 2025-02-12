@@ -8,23 +8,18 @@ export class EncryptionAdapter {
 
   constructor(private key: Buffer = randomBytes(32)) {}
 
-  async encrypt(data: Buffer): Promise<{ encrypted: Buffer; tag: Buffer }> {
+  async encrypt(data: Buffer): Promise<Buffer> {
     const iv = randomBytes(this.ivLength);
     const cipher = createCipheriv(this.algorithm, this.key, iv);
     
-    const encrypted = Buffer.concat([iv, cipher.update(data), cipher.final()]);
-    const tag = cipher.getAuthTag();
-
-    return { encrypted, tag };
+    return Buffer.concat([iv, cipher.update(data), cipher.final()]);
   }
 
-  async decrypt(encrypted: Buffer, tag: Buffer): Promise<Buffer> {
+  async decrypt(encrypted: Buffer): Promise<Buffer> {
     const iv = encrypted.slice(0, this.ivLength);
     const data = encrypted.slice(this.ivLength);
     
     const decipher = createDecipheriv(this.algorithm, this.key, iv);
-    decipher.setAuthTag(tag);
-    
     return Buffer.concat([decipher.update(data), decipher.final()]);
   }
 }
