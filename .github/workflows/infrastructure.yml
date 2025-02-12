@@ -29,7 +29,9 @@ jobs:
         working-directory: ./infrastructure/terraform
 
       - name: Terraform Init
-        run: terraform init -backend=false
+        run: |
+          terraform init -backend=false -reconfigure
+          terraform init -backend=true -backend-config="path=terraform.tfstate"
         working-directory: ./infrastructure/terraform
 
       - name: Terraform Validate
@@ -41,7 +43,7 @@ jobs:
         run: |
           # Skip provider verification for CI
           export TF_SKIP_PROVIDER_VERIFY=true
-          terraform plan -no-color -input=false -var="environment=dev" -var="aws_region=us-east-1" -var="vpc_cidr=10.0.0.0/16" -var='availability_zones=["us-east-1a", "us-east-1b", "us-east-1c"]' -refresh=false -lock=false
+          terraform plan -no-color -input=false -var="environment=dev" -var="aws_region=us-east-1" -var="vpc_cidr=10.0.0.0/16" -var='availability_zones=["us-east-1a", "us-east-1b", "us-east-1c"]'
         working-directory: ./infrastructure/terraform
         continue-on-error: true
 
@@ -59,8 +61,9 @@ jobs:
             
             *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
             
-            github.rest.issues.createComment({
-              ...context.repo,
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
               issue_number: context.issue.number,
               body: output
-            })
+            });
