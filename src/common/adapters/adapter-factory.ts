@@ -4,7 +4,7 @@ import { IPFSAdapter } from './ipfs.adapter';
 import { EncryptionAdapter } from './encryption.adapter';
 import { StorageService } from '../types/storage';
 import { HybridStorageService } from '../utils/storage';
-import { StorageAdapter } from './storage.adapter';
+import { StorageAdapter } from './storage';
 
 class AdapterFactory {
   private static instance: AdapterFactory;
