@@ -38,11 +38,12 @@ jobs:
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
-        run: terraform plan -no-color -input=false -var-file=terraform.tfvars
+        run: |
+          # Skip provider verification for CI
+          export TF_SKIP_PROVIDER_VERIFY=true
+          terraform plan -no-color -input=false -var-file=terraform.tfvars -refresh=false -lock=false
         working-directory: ./infrastructure/terraform
         continue-on-error: true
-        env:
-          TF_SKIP_PROVIDER_VERIFY: "true"
 
       - name: Update Pull Request
         uses: actions/github-script@v7
@@ -59,8 +60,7 @@ jobs:
             *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
             
             github.rest.issues.createComment({
+              ...context.repo,
               issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.name,
               body: output
             })
