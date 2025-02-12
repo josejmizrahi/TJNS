@@ -3,6 +3,12 @@ import dotenv from 'dotenv';
 // Load environment variables
 dotenv.config();
 
+interface XRPLConfig {
+  nodeUrl: string;
+  issuerAddress?: string;
+  tokenCode: string;
+}
+
 export const config = {
   env: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT || '3000', 10),
@@ -27,6 +33,12 @@ export const config = {
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100, // limit each IP to 100 requests per windowMs
   },
+  
+  xrpl: {
+    nodeUrl: process.env.XRPL_NODE_URL || 'wss://s.altnet.rippletest.net:51233',
+    issuerAddress: process.env.XRPL_ISSUER_ADDRESS,
+    tokenCode: process.env.XRPL_TOKEN_CODE || 'SHK'
+  } as XRPLConfig
 };
 
 export default config;
