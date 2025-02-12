@@ -5,8 +5,10 @@ terraform {
       version = "~> 5.0"
     }
   }
-  # Backend configuration will be provided during deployment
-  backend "local" {}
+  # Backend configuration for CI/CD
+  backend "local" {
+    path = "terraform.tfstate"
+  }
 }
 
 provider "aws" {
