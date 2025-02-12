@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { User, KYCDocument, TokenBalance, Transaction, MitzvahPointsRuleEntity } from '../types/models';
+import { User, KYCDocument, TokenBalance, Transaction, MitzvahPointsRuleEntity, Escrow } from '../types/models';
 
 export interface DatabaseAdapter {
   // User operations
@@ -26,15 +26,13 @@ export interface DatabaseAdapter {
 import { supabase } from '../config/supabase';
 import { AppError } from '../middleware/error';
 import { JewishIdentityEntity } from '../../identity/models/jewish-id.model';
-import { SupabaseClient } from '@supabase/supabase-js';
-import { EscrowEntity } from '../types/imports';
 
 export class SupabaseAdapter implements DatabaseAdapter {
-  private readonly client: SupabaseClient;
-
   constructor() {
     this.client = supabase;
   }
+
+  private client: SupabaseClient;
 
   // JewishID methods
   async createJewishIdentity(data: Partial<JewishIdentityEntity>): Promise<JewishIdentityEntity> {
