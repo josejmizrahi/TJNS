@@ -59,7 +59,7 @@ export class ProfileSyncService {
       throw new AppError(404, 'User not found');
     }
 
-    const jewishId = await this.database.getJewishIdentityByUserId(userId);
+    const jewishId: JewishIdentityEntity | null = await this.database.getJewishIdentityByUserId(userId);
     if (!jewishId) {
       throw new AppError(404, 'JewishID profile not found');
     }
