@@ -1,0 +1,2 @@
+# Security groups module placeholder
+# Will be implemented in a separate PR

@@ -9,6 +9,7 @@ import {
   UserStatus
 } from '../../common/types/models';
 import { BlockchainService } from '../../common/utils/blockchain';
+import { MFAService } from '../../common/utils/mfa';
 import { AppError } from '../../common/middleware/error';
 import { supabase } from '../../common/config/supabase';
 import { HybridStorageService } from '../../common/utils/storage';
@@ -77,7 +78,7 @@ export class IdentityService {
     return user;
   }
 
-  async verifyEmail(userId: string, token: string): Promise<void> {
+  async verifyEmail(userId: string, token: string): Promise<{ totpUri: string; backupCodes: string[] }> {
     const { error } = await supabase.auth.verifyOtp({
       token_hash: token,
       type: 'email'
@@ -85,8 +86,27 @@ export class IdentityService {
 
     if (error) throw new AppError(400, error.message);
 
-    // Update user verification level
+    // Update user verification level and enable MFA setup
     await this.updateVerificationLevel(userId, VerificationLevel.BASIC);
+    
+    // Generate MFA secret and backup codes
+    const mfaSecret = MFAService.generateSecret();
+    const backupCodes = MFAService.generateBackupCodes();
+    const hashedBackupCodes = MFAService.hashBackupCodes(backupCodes);
+
+    // Store MFA configuration
+    const existingUser = await this.database.getUserById(userId);
+    if (!existingUser) throw new AppError(404, 'User not found');
+
+    await this.database.updateUser(userId, {
+      profile: {
+        ...existingUser.profile,
+        mfaSecret,
+        mfaBackupCodes: hashedBackupCodes,
+        mfaEnabled: false,
+        mfaVerified: false
+      }
+    });
 
     // Notify about email verification
     await this.realtime.publish(
@@ -94,6 +114,35 @@ export class IdentityService {
       'email_verified',
       { userId }
     );
+
+    const currentUser = await this.database.getUserById(userId);
+    if (!currentUser) throw new AppError(404, 'User not found');
+
+    return {
+      totpUri: MFAService.generateTOTPUri(mfaSecret, currentUser.email),
+      backupCodes
+    };
+  }
+
+  async verifyMFA(userId: string, token: string): Promise<void> {
+    const user = await this.database.getUserById(userId);
+    if (!user?.profile.mfaSecret) {
+      throw new AppError(400, 'MFA not configured');
+    }
+
+    const isValid = MFAService.verifyTOTP(token, user.profile.mfaSecret);
+    if (!isValid) {
+      throw new AppError(401, 'Invalid MFA token');
+    }
+
+    // Enable MFA after successful verification
+    await this.database.updateUser(userId, {
+      profile: {
+        ...user.profile,
+        mfaEnabled: true,
+        mfaVerified: true
+      }
+    });
   }
 
   async uploadKYCDocument(

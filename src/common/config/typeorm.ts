@@ -5,7 +5,7 @@ import { TokenEntity } from '../../blockchain/models/token.model';
 import { JewishIdentityEntity } from '../../identity/models/jewish-id.model';
 import { ListingEntity, OfferEntity, TransactionEntity } from '../../marketplace/models';
 
-const AppDataSource = new DataSource({
+export const AppDataSource = new DataSource({
   type: 'postgres',
   url: process.env.DATABASE_URL,
   synchronize: false,
@@ -24,7 +24,7 @@ const AppDataSource = new DataSource({
   }
 });
 
-export const initializeDatabase = async () => {
+export const initializeDatabase = async (): Promise<void> => {
   try {
     await AppDataSource.initialize();
     // Database connection initialized successfully
@@ -33,5 +33,3 @@ export const initializeDatabase = async () => {
     throw new Error(`Error initializing database: ${error}`);
   }
 };
-
-export { AppDataSource };
