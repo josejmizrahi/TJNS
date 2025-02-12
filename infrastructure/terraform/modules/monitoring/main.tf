@@ -93,24 +93,6 @@ resource "aws_cloudwatch_metric_alarm" "redis_memory" {
   }
 }
 
-# RDS Storage and IOPS Alarms
-resource "aws_cloudwatch_metric_alarm" "rds_storage" {
-  alarm_name          = "tjns-${var.environment}-rds-storage"
-  comparison_operator = "LessThanThreshold"
-  evaluation_periods  = "2"
-  metric_name         = "FreeStorageSpace"
-  namespace           = "AWS/RDS"
-  period              = "300"
-  statistic           = "Average"
-  threshold           = "10000000000" # 10GB
-  alarm_description   = "RDS free storage space is too low"
-  alarm_actions       = var.alarm_actions
-
-  dimensions = {
-    DBInstanceIdentifier = var.rds_instance_id
-  }
-}
-
 # CloudWatch Dashboard
 resource "aws_cloudwatch_dashboard" "main" {
   dashboard_name = "tjns-${var.environment}-dashboard"
