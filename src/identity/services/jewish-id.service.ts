@@ -104,7 +104,7 @@ export class JewishIdentityService {
         metadata: {
           ...identity.metadata,
           verifications: [
-            ...(identity.metadata.verifications || []),
+            ...((identity.metadata.verifications as any[]) || []),
             {
               verifierId,
               timestamp: new Date().toISOString(),
@@ -121,7 +121,7 @@ export class JewishIdentityService {
 export default new JewishIdentityService(
   new HybridStorageService(
     adapterFactory.getStorageAdapter(),
-    adapterFactory.getIPFSAdapter(),
-    adapterFactory.getEncryptionAdapter()
+    adapterFactory.getIPFSService(),
+    adapterFactory.getEncryptionService()
   )
 );
