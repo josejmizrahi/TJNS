@@ -1,18 +1,27 @@
+import 'reflect-metadata';
 import { DataSource } from 'typeorm';
-import { JewishIdentityEntity } from '../../identity/models';
+import { config } from './app';
+import { TokenEntity } from '../../blockchain/models/token.model';
+import { JewishIdentityEntity } from '../../identity/models/jewish-id.model';
+import { ListingEntity, OfferEntity, TransactionEntity } from '../../marketplace/models';
 
-const AppDataSource = new DataSource({
+export const AppDataSource = new DataSource({
   type: 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  username: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
-  database: process.env.DB_NAME || 'tjns',
+  url: process.env.DATABASE_URL,
   synchronize: false,
-  logging: process.env.NODE_ENV === 'development',
-  entities: [JewishIdentityEntity],
-  migrations: ['src/database/migrations/*.ts'],
-  subscribers: []
+  logging: config.env === 'development',
+  entities: [
+    TokenEntity,
+    JewishIdentityEntity,
+    ListingEntity,
+    OfferEntity,
+    TransactionEntity
+  ],
+  migrations: ['src/database/migrations/*.{js,ts}'],
+  subscribers: [],
+  extra: {
+    ssl: config.env === 'production'
+  }
 });
 
 export const initializeDatabase = async () => {
