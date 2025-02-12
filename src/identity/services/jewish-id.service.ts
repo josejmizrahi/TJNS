@@ -29,7 +29,7 @@ export class JewishIdentityService {
   private database: DatabaseAdapter;
   private storage: HybridStorageService;
 
-  constructor(storageService: any) {
+  constructor(storageService: HybridStorageService) {
     this.storage = storageService;
     this.database = adapterFactory.getDatabaseAdapter();
   }
@@ -104,7 +104,7 @@ export class JewishIdentityService {
         metadata: {
           ...identity.metadata,
           verifications: [
-            ...((identity.metadata.verifications as any[]) || []),
+            ...((identity.metadata.verifications as Array<Record<string, unknown>>) || []),
             {
               verifierId,
               timestamp: new Date().toISOString(),

@@ -2,8 +2,7 @@ import { DatabaseAdapter } from './database.adapter';
 import { SupabaseAdapter } from './supabase.adapter';
 import { IPFSService } from '../utils/ipfs';
 import { EncryptionService } from '../utils/encryption';
-import { StorageType } from '../types/storage';
-import { HybridStorageService, StorageOptions } from '../utils/storage';
+import { HybridStorageService } from '../utils/storage';
 import { SupabaseStorageAdapter } from './storage.adapter';
 
 class AdapterFactory {

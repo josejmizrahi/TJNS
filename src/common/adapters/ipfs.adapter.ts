@@ -1,12 +1,6 @@
 import { IPFSHTTPClient, create } from 'ipfs-http-client';
-import { StorageType } from '../types/storage';
 
-export interface IPFSService {
-  addFile(data: Buffer): Promise<string>;
-  getFile(cid: string): Promise<Buffer>;
-}
-
-export class IPFSAdapter implements IPFSService {
+export class IPFSAdapter {
   private client: IPFSHTTPClient;
 
   constructor() {

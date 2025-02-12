@@ -3,7 +3,10 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { config } from './common/config/app';
+// Import database initialization
 import { initializeDatabase } from './common/config/typeorm';
+// Initialize database on startup
+void initializeDatabase();
 import { errorHandler, notFound } from './common/middleware/error';
 // Database configuration is handled by adapter factory
 import { connectXRPL } from './common/config/blockchain';
