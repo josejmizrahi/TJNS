@@ -7,15 +7,14 @@ export const AppDataSource = new DataSource({
   url: process.env.DATABASE_URL,
   synchronize: false,
   logging: config.env === 'development',
-  entities: ['src/**/*.model.ts'],
-  migrations: ['src/database/migrations/*.ts'],
-  subscribers: []
+  entities: ['src/**/*.model.{js,ts}'],
+  migrations: ['src/database/migrations/*.{js,ts}'],
+  subscribers: [],
+  extra: {
+    ssl: config.env === 'production'
+  }
 });
 
 export const initializeDatabase = async (): Promise<void> => {
-  try {
-    await AppDataSource.initialize();
-  } catch (error) {
-    throw error;
-  }
+  await AppDataSource.initialize();
 };
