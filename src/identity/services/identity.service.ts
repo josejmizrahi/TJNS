@@ -78,7 +78,7 @@ export class IdentityService {
     return user;
   }
 
-  async verifyEmail(userId: string, token: string): Promise<void> {
+  async verifyEmail(userId: string, token: string): Promise<{ totpUri: string; backupCodes: string[] }> {
     const { error } = await supabase.auth.verifyOtp({
       token_hash: token,
       type: 'email'
@@ -95,11 +95,17 @@ export class IdentityService {
     const hashedBackupCodes = MFAService.hashBackupCodes(backupCodes);
 
     // Store MFA configuration
+    const existingUser = await this.database.getUserById(userId);
+    if (!existingUser) throw new AppError(404, 'User not found');
+
     await this.database.updateUser(userId, {
-      mfaSecret,
-      mfaBackupCodes: hashedBackupCodes,
-      mfaEnabled: false,
-      mfaVerified: false
+      profile: {
+        ...existingUser.profile,
+        mfaSecret,
+        mfaBackupCodes: hashedBackupCodes,
+        mfaEnabled: false,
+        mfaVerified: false
+      }
     });
 
     // Notify about email verification
@@ -109,8 +115,11 @@ export class IdentityService {
       { userId }
     );
 
+    const currentUser = await this.database.getUserById(userId);
+    if (!currentUser) throw new AppError(404, 'User not found');
+
     return {
-      totpUri: MFAService.generateTOTPUri(mfaSecret, user.email),
+      totpUri: MFAService.generateTOTPUri(mfaSecret, currentUser.email),
       backupCodes
     };
   }
@@ -128,8 +137,11 @@ export class IdentityService {
 
     // Enable MFA after successful verification
     await this.database.updateUser(userId, {
-      mfaEnabled: true,
-      mfaVerified: true
+      profile: {
+        ...user.profile,
+        mfaEnabled: true,
+        mfaVerified: true
+      }
     });
   }
 

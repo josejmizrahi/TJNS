@@ -1,4 +1,4 @@
-import { MigrationFn } from '../init';
+import { MigrationFn } from './types';
 
 export const up: MigrationFn = async (client) => {
   await client.query(`
