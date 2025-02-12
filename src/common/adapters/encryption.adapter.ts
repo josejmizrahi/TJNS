@@ -1,7 +1,7 @@
 import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
 
 export class EncryptionAdapter {
-  private algorithm = 'aes-256-gcm';
+  private algorithm = 'aes-256-cbc';
   private keyLength = 32;
   private ivLength = 16;
   private authTagLength = 16;
