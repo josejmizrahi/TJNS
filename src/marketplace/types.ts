@@ -1,4 +1,4 @@
-import { StorageMetadata } from '../common/types/storage';
+// Storage service interface for marketplace
 
 export interface IStorageService {
   store(path: string, data: Record<string, unknown>): Promise<void>;

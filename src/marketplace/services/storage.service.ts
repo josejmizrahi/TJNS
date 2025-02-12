@@ -4,7 +4,7 @@ import { HybridStorageService, StorageType } from '../../common/utils/storage';
 export class MarketplaceStorageService {
   constructor(private storage: HybridStorageService) {}
 
-  async uploadListingImage(listingId: string, imageBuffer: Buffer, mimeType: string): Promise<{ path: string; type: StorageType }> {
+  async uploadListingImage(listingId: string, imageBuffer: Buffer, _mimeType: string): Promise<{ path: string; type: StorageType }> {
     const hash = createHash('sha256').update(imageBuffer).digest('hex');
     const path = `listings/${listingId}/images/${hash}`;
     
