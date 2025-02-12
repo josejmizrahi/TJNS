@@ -29,7 +29,7 @@ export class JewishIdentityService {
   private database: DatabaseAdapter;
   private storage: HybridStorageService;
 
-  constructor(storageService: HybridStorageService) {
+  constructor(storageService: any) {
     this.storage = storageService;
     this.database = adapterFactory.getDatabaseAdapter();
   }
