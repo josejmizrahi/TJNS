@@ -13,6 +13,9 @@ export interface DatabaseAdapter {
   getDocumentsByUserId(userId: string): Promise<KYCDocument[]>;
   updateDocument(id: string, data: Partial<KYCDocument>): Promise<KYCDocument>;
   
+  // Raw query execution
+  query(sql: string, params?: unknown[]): Promise<unknown>;
+  
   // JewishID management
   createJewishIdentity(data: Partial<JewishIdentityEntity>): Promise<JewishIdentityEntity>;
   getJewishIdentityById(id: string): Promise<JewishIdentityEntity | null>;

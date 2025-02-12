@@ -26,9 +26,7 @@ export class ProfileSyncService {
     await this.database.updateUser(userId, {
       profile: {
         ...user.profile,
-        jewishIdentityId: jewishId.id,
-        synagogue: jewishId.synagogue,
-        community: jewishId.community
+        jewishIdentityId: jewishId.id
       }
     });
 
