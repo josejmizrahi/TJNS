@@ -1,10 +1,11 @@
 import { createHash } from 'crypto';
 import { create as createIPFS } from 'ipfs-http-client';
 import { HybridStorageService } from '../../common/utils/storage';
+import { IPFSConfig, StorageMetadata, IStorageService } from '../types';
 
 export class MarketplaceStorageService {
-  private ipfs;
-  private storage: HybridStorageService;
+  private ipfs: IPFSHTTPClient;
+  private storage: IStorageService;
 
   constructor() {
     this.ipfs = createIPFS({ url: process.env.IPFS_NODE_URL || 'http://localhost:5001' });
