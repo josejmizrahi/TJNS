@@ -1,6 +1,6 @@
 import { DatabaseAdapter } from './database.adapter';
 import { SupabaseAdapter } from './supabase.adapter';
-import { IPFSAdapter, IPFSService } from './ipfs.adapter';
+import { IPFSService, IPFSServiceImpl } from '../utils/ipfs';
 import { EncryptionAdapter } from './encryption.adapter';
 import { StorageType } from '../types/storage';
 import { HybridStorageService, StorageOptions } from '../utils/storage';
@@ -9,7 +9,7 @@ import { SupabaseStorageAdapter } from './storage.adapter';
 class AdapterFactory {
   private static instance: AdapterFactory;
   private databaseAdapter?: DatabaseAdapter;
-  private ipfsAdapter?: IPFSAdapter;
+  private ipfsService?: IPFSService;
   private encryptionAdapter?: EncryptionAdapter;
   private storageAdapter?: HybridStorageService;
 
@@ -29,11 +29,11 @@ class AdapterFactory {
     return this.databaseAdapter;
   }
 
-  getIPFSAdapter(): IPFSAdapter {
-    if (!this.ipfsAdapter) {
-      this.ipfsAdapter = new IPFSAdapter();
+  getIPFSService(): IPFSService {
+    if (!this.ipfsService) {
+      this.ipfsService = new IPFSServiceImpl();
     }
-    return this.ipfsAdapter;
+    return this.ipfsService;
   }
 
   getEncryptionAdapter(): EncryptionAdapter {
@@ -50,7 +50,7 @@ class AdapterFactory {
           process.env.SUPABASE_URL!,
           process.env.SUPABASE_ANON_KEY!
         ),
-        this.getIPFSAdapter(),
+        this.getIPFSService(),
         this.getEncryptionAdapter()
       );
     }
