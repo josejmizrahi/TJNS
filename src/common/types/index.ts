@@ -1,6 +1,7 @@
 export * from './models';
 export * from './responses';
 import { UserRole, VerificationLevel } from './models';
+export { UserRole, VerificationLevel };
 
 // Request Types
 export interface PaginationParams {
