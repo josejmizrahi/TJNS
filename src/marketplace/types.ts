@@ -1,18 +1,6 @@
-import { Pool } from 'pg';
-import { IPFSHTTPClient } from 'ipfs-http-client';
-
-export interface IPFSConfig {
-  url: string;
-}
-
-export interface StorageMetadata {
-  ipfsHash: string;
-  mimeType: string;
-  size: number;
-  uploadedAt: string;
-}
+import { StorageMetadata } from '../common/types/storage';
 
 export interface IStorageService {
-  store(path: string, data: Record<string, any>): Promise<void>;
-  retrieve(path: string): Promise<Record<string, any> | null>;
+  store(path: string, data: Record<string, unknown>): Promise<void>;
+  retrieve(path: string): Promise<Record<string, unknown> | null>;
 }
