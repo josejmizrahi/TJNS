@@ -41,7 +41,7 @@ jobs:
         run: |
           # Skip provider verification for CI
           export TF_SKIP_PROVIDER_VERIFY=true
-          terraform plan -no-color -input=false -var-file=terraform.tfvars -refresh=false -lock=false
+          terraform plan -no-color -input=false -var="environment=dev" -var="aws_region=us-east-1" -var="vpc_cidr=10.0.0.0/16" -var='availability_zones=["us-east-1a", "us-east-1b", "us-east-1c"]' -refresh=false -lock=false
         working-directory: ./infrastructure/terraform
         continue-on-error: true
 
