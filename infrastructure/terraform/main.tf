@@ -5,6 +5,7 @@ terraform {
       version = "~> 5.0"
     }
   }
+
   # Backend configuration for CI/CD
   backend "local" {
     path = "terraform.tfstate"
@@ -13,6 +14,7 @@ terraform {
 
 provider "aws" {
   region = var.aws_region
+
   default_tags {
     tags = {
       Project     = "TJNS"
