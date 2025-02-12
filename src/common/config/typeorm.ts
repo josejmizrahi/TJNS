@@ -22,7 +22,6 @@ export const initializeDatabase = async () => {
   } catch (error) {
     // Log error and rethrow
     throw new Error(`Error initializing database: ${error}`);
-    throw error;
   }
 };
 
