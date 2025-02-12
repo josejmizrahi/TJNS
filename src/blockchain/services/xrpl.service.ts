@@ -9,21 +9,21 @@ export class XrplService {
     this.client = new XrplClient(config.xrpl.nodeUrl);
   }
 
-  async createTrustline(type: TokenType): Promise<string> {
+  async createTrustline(_type: TokenType): Promise<string> {
     // Implementation will be added in a separate PR
     return 'dummy-xrpl-address';
   }
 
-  async getBalance(address: string, type: TokenType): Promise<number> {
+  async getBalance(_address: string, _type: TokenType): Promise<number> {
     // Implementation will be added in a separate PR
     return 0;
   }
 
   async transfer(
-    fromAddress: string,
-    toAddress: string,
-    amount: number,
-    type: TokenType
+    _fromAddress: string,
+    _toAddress: string,
+    _amount: number,
+    _type: TokenType
   ): Promise<void> {
     // Implementation will be added in a separate PR
   }
