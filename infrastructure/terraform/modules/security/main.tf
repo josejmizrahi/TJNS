@@ -3,7 +3,7 @@ resource "aws_security_group_rule" "eks_cluster_rules" {
   count = 2
 
   security_group_id = var.eks_cluster_security_group_id
-  type             = count.index == 0 ? "ingress" : "egress"
+  type              = count.index == 0 ? "ingress" : "egress"
 
   from_port = count.index == 0 ? 443 : 1025
   to_port   = count.index == 0 ? 443 : 65535
@@ -17,7 +17,7 @@ resource "aws_security_group_rule" "eks_node_rules" {
   count = 3
 
   security_group_id = var.eks_node_security_group_id
-  type             = "ingress"
+  type              = "ingress"
 
   from_port = count.index == 0 ? 0 : (count.index == 1 ? 1025 : 443)
   to_port   = count.index == 0 ? 65535 : (count.index == 1 ? 65535 : 443)
@@ -28,21 +28,21 @@ resource "aws_security_group_rule" "eks_node_rules" {
 
 # Security group rules for RDS
 resource "aws_security_group_rule" "rds_rules" {
-  security_group_id = var.rds_security_group_id
-  type             = "ingress"
-  from_port        = 5432
-  to_port          = 5432
-  protocol         = "tcp"
+  security_group_id        = var.rds_security_group_id
+  type                     = "ingress"
+  from_port                = 5432
+  to_port                  = 5432
+  protocol                 = "tcp"
   source_security_group_id = var.eks_node_security_group_id
 }
 
 # Security group rules for Redis
 resource "aws_security_group_rule" "redis_rules" {
-  security_group_id = var.redis_security_group_id
-  type             = "ingress"
-  from_port        = 6379
-  to_port          = 6379
-  protocol         = "tcp"
+  security_group_id        = var.redis_security_group_id
+  type                     = "ingress"
+  from_port                = 6379
+  to_port                  = 6379
+  protocol                 = "tcp"
   source_security_group_id = var.eks_node_security_group_id
 }
 
@@ -52,10 +52,10 @@ data "aws_iam_policy_document" "kms_policy" {
     sid    = "Enable IAM User Permissions"
     effect = "Allow"
     principals {
-      type = "AWS"
+      type        = "AWS"
       identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
     }
-    actions = ["kms:*"]
+    actions   = ["kms:*"]
     resources = ["*"]
   }
 
@@ -63,7 +63,7 @@ data "aws_iam_policy_document" "kms_policy" {
     sid    = "Allow EKS to use the key"
     effect = "Allow"
     principals {
-      type = "Service"
+      type        = "Service"
       identifiers = ["eks.amazonaws.com"]
     }
     actions = [
