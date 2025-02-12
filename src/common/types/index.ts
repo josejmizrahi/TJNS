@@ -1,3 +1,7 @@
+// Import enums first
+import { UserRole, VerificationLevel } from '../enums/user';
+
+// Then do exports
 export * from './models';
 export * from './responses';
 export * from './storage';
@@ -5,9 +9,6 @@ export * from './jewish-id';
 
 // Re-export specific types to avoid conflicts
 export { Escrow as EscrowEntity } from './models';
-
-// Import enums
-import { UserRole, VerificationLevel } from '../enums/user';
 export { UserRole, VerificationLevel };
 
 // Request Types
