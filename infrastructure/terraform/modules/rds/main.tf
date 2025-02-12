@@ -8,7 +8,7 @@ resource "aws_security_group" "rds" {
     from_port       = 5432
     to_port         = 5432
     protocol        = "tcp"
-    security_groups = []  # Will be updated when EKS security group is available
+    security_groups = [] # Will be updated when EKS security group is available
   }
 
   tags = {
@@ -56,11 +56,11 @@ resource "aws_db_instance" "main" {
   vpc_security_group_ids = [aws_security_group.rds.id]
 
   backup_retention_period = var.backup_retention_period
-  backup_window          = var.backup_window
-  maintenance_window     = var.maintenance_window
+  backup_window           = var.backup_window
+  maintenance_window      = var.maintenance_window
 
   storage_encrypted = true
-  kms_key_id       = aws_kms_key.rds.arn
+  kms_key_id        = aws_kms_key.rds.arn
 
   skip_final_snapshot = var.environment != "prod"
 
