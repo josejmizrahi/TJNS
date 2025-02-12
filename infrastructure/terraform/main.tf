@@ -20,15 +20,11 @@ provider "aws" {
   }
 }
 
-# Core networking
+# Core networking only for initial setup
 module "vpc" {
   source = "./modules/vpc"
 
   environment        = var.environment
-  vpc_cidr           = var.vpc_cidr
+  vpc_cidr          = var.vpc_cidr
   availability_zones = var.availability_zones
 }
-
-# Security groups
-# Core networking only for initial setup
-# Other modules will be added in subsequent PRs
