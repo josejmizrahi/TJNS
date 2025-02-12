@@ -24,16 +24,16 @@ provider "aws" {
 # Core networking
 module "vpc" {
   source = "./modules/vpc"
-  
+
   environment        = var.environment
-  vpc_cidr          = var.vpc_cidr
+  vpc_cidr           = var.vpc_cidr
   availability_zones = var.availability_zones
 }
 
 # Security groups
 module "security_groups" {
   source = "./modules/security"
-  
+
   vpc_id      = module.vpc.vpc_id
   environment = var.environment
 }
@@ -41,29 +41,29 @@ module "security_groups" {
 # EKS cluster
 module "eks" {
   source = "./modules/eks"
-  
-  cluster_name    = "tjns-${var.environment}"
-  vpc_id         = module.vpc.vpc_id
-  subnet_ids     = module.vpc.private_subnet_ids
-  environment    = var.environment
+
+  cluster_name = "tjns-${var.environment}"
+  vpc_id       = module.vpc.vpc_id
+  subnet_ids   = module.vpc.private_subnet_ids
+  environment  = var.environment
 }
 
 # RDS database
 module "rds" {
   source = "./modules/rds"
-  
-  identifier     = "tjns-${var.environment}"
-  vpc_id         = module.vpc.vpc_id
-  subnet_ids     = module.vpc.database_subnet_ids
-  environment    = var.environment
+
+  identifier  = "tjns-${var.environment}"
+  vpc_id      = module.vpc.vpc_id
+  subnet_ids  = module.vpc.database_subnet_ids
+  environment = var.environment
 }
 
 # Redis for caching
 module "redis" {
   source = "./modules/redis"
-  
-  cluster_id     = "tjns-${var.environment}"
-  vpc_id         = module.vpc.vpc_id
-  subnet_ids     = module.vpc.private_subnet_ids
-  environment    = var.environment
+
+  cluster_id  = "tjns-${var.environment}"
+  vpc_id      = module.vpc.vpc_id
+  subnet_ids  = module.vpc.private_subnet_ids
+  environment = var.environment
 }

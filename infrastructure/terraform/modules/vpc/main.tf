@@ -15,7 +15,7 @@ resource "aws_subnet" "private" {
   availability_zone = var.availability_zones[count.index]
 
   tags = {
-    Name = "tjns-${var.environment}-private-${count.index + 1}"
+    Name                              = "tjns-${var.environment}-private-${count.index + 1}"
     "kubernetes.io/role/internal-elb" = "1"
   }
 }
@@ -27,7 +27,7 @@ resource "aws_subnet" "public" {
   availability_zone = var.availability_zones[count.index]
 
   tags = {
-    Name = "tjns-${var.environment}-public-${count.index + 1}"
+    Name                     = "tjns-${var.environment}-public-${count.index + 1}"
     "kubernetes.io/role/elb" = "1"
   }
 }
@@ -84,7 +84,7 @@ resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
 
   route {
-    cidr_block = "0.0.0.0/0"
+    cidr_block     = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.main.id
   }
 
