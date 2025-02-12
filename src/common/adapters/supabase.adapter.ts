@@ -1,5 +1,6 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { User, KYCDocument, TokenBalance, Transaction, MitzvahPointsRuleEntity, Escrow } from '../types/models';
+import { TokenEntity, TokenType } from '../../blockchain/models/token.model';
 
 export interface DatabaseAdapter {
   // User operations
@@ -70,6 +71,40 @@ export class SupabaseAdapter implements DatabaseAdapter {
   async updateJewishIdentity(id: string, data: Partial<JewishIdentityEntity>): Promise<JewishIdentityEntity> {
     const { data: updated, error } = await this.client
       .from('jewish_identities')
+      .update(data)
+      .eq('id', id)
+      .single();
+
+    if (error) throw new AppError(400, error.message);
+    return updated;
+  }
+
+  // Token methods
+  async createToken(data: Partial<TokenEntity>): Promise<TokenEntity> {
+    const { data: token, error } = await this.client
+      .from('tokens')
+      .insert(data)
+      .single();
+
+    if (error) throw new AppError(400, error.message);
+    return token;
+  }
+
+  async getTokenByUserAndType(userId: string, type: TokenType): Promise<TokenEntity | null> {
+    const { data, error } = await this.client
+      .from('tokens')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('type', type)
+      .single();
+
+    if (error && error.code !== 'PGRST116') return null;
+    return data;
+  }
+
+  async updateToken(id: string, data: Partial<TokenEntity>): Promise<TokenEntity> {
+    const { data: updated, error } = await this.client
+      .from('tokens')
       .update(data)
       .eq('id', id)
       .single();

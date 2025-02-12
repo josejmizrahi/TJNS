@@ -16,6 +16,11 @@ export interface DatabaseAdapter {
   // Raw query execution
   query(sql: string, params?: unknown[]): Promise<unknown>;
   
+  // Token management
+  createToken(data: Partial<TokenEntity>): Promise<TokenEntity>;
+  getTokenByUserAndType(userId: string, type: TokenType): Promise<TokenEntity | null>;
+  updateToken(id: string, data: Partial<TokenEntity>): Promise<TokenEntity>;
+  
   // JewishID management
   createJewishIdentity(data: Partial<JewishIdentityEntity>): Promise<JewishIdentityEntity>;
   getJewishIdentityById(id: string): Promise<JewishIdentityEntity | null>;
