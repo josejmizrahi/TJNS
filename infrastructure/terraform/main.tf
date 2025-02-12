@@ -23,12 +23,11 @@ provider "aws" {
 }
 
 # Core networking only for initial setup
+# Additional modules (EKS, RDS, Redis, Security) will be implemented in separate PRs
 module "vpc" {
   source = "./modules/vpc"
 
   environment        = var.environment
-  vpc_cidr           = var.vpc_cidr
+  vpc_cidr          = var.vpc_cidr
   availability_zones = var.availability_zones
 }
-
-# Backend configuration will be provided during deployment
