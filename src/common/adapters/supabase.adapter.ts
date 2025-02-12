@@ -28,11 +28,11 @@ import { AppError } from '../middleware/error';
 import { JewishIdentityEntity } from '../../identity/models/jewish-id.model';
 
 export class SupabaseAdapter implements DatabaseAdapter {
+  private readonly client: SupabaseClient;
+
   constructor() {
     this.client = supabase;
   }
-
-  private client: SupabaseClient;
 
   // JewishID methods
   async createJewishIdentity(data: Partial<JewishIdentityEntity>): Promise<JewishIdentityEntity> {
@@ -77,11 +77,7 @@ export class SupabaseAdapter implements DatabaseAdapter {
     if (error) throw new AppError(400, error.message);
     return updated;
   }
-  private client: SupabaseClient;
-
-  constructor(supabaseUrl: string, supabaseKey: string) {
-    this.client = createClient(supabaseUrl, supabaseKey);
-  }
+  // Removed duplicate constructor and client declaration
 
   // User operations
   async createUser(user: Partial<User>): Promise<User> {
