@@ -9,6 +9,7 @@ import {
   UserStatus
 } from '../../common/types/models';
 import { BlockchainService } from '../../common/utils/blockchain';
+import { MFAService } from '../../common/utils/mfa';
 import { AppError } from '../../common/middleware/error';
 import { supabase } from '../../common/config/supabase';
 import { HybridStorageService } from '../../common/utils/storage';
@@ -85,8 +86,21 @@ export class IdentityService {
 
     if (error) throw new AppError(400, error.message);
 
-    // Update user verification level
+    // Update user verification level and enable MFA setup
     await this.updateVerificationLevel(userId, VerificationLevel.BASIC);
+    
+    // Generate MFA secret and backup codes
+    const mfaSecret = MFAService.generateSecret();
+    const backupCodes = MFAService.generateBackupCodes();
+    const hashedBackupCodes = MFAService.hashBackupCodes(backupCodes);
+
+    // Store MFA configuration
+    await this.database.updateUser(userId, {
+      mfaSecret,
+      mfaBackupCodes: hashedBackupCodes,
+      mfaEnabled: false,
+      mfaVerified: false
+    });
 
     // Notify about email verification
     await this.realtime.publish(
@@ -94,6 +108,29 @@ export class IdentityService {
       'email_verified',
       { userId }
     );
+
+    return {
+      totpUri: MFAService.generateTOTPUri(mfaSecret, user.email),
+      backupCodes
+    };
+  }
+
+  async verifyMFA(userId: string, token: string): Promise<void> {
+    const user = await this.database.getUserById(userId);
+    if (!user?.profile.mfaSecret) {
+      throw new AppError(400, 'MFA not configured');
+    }
+
+    const isValid = MFAService.verifyTOTP(token, user.profile.mfaSecret);
+    if (!isValid) {
+      throw new AppError(401, 'Invalid MFA token');
+    }
+
+    // Enable MFA after successful verification
+    await this.database.updateUser(userId, {
+      mfaEnabled: true,
+      mfaVerified: true
+    });
   }
 
   async uploadKYCDocument(

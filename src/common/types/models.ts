@@ -25,6 +25,10 @@ export interface UserProfile {
   synagogue?: string;
   community?: string;
   documents: KYCDocument[];
+  mfaEnabled: boolean;
+  mfaSecret?: string;
+  mfaBackupCodes?: string[];
+  mfaVerified: boolean;
 }
 
 export interface KYCDocument {
