@@ -25,7 +25,7 @@ export interface DatabaseAdapter {
 
 import { supabase } from '../config/supabase';
 import { AppError } from '../middleware/error';
-import { JewishIdentityEntity } from '../../identity/models/jewish-id.model';
+import { JewishIdentityEntity } from '../../identity/models';
 
 export class SupabaseAdapter implements DatabaseAdapter {
   private readonly client: SupabaseClient;

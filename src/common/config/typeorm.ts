@@ -1,5 +1,5 @@
 import { DataSource } from 'typeorm';
-import { JewishIdentityEntity } from '../../identity/models/jewish-id.model';
+import { JewishIdentityEntity } from '../../identity/models';
 
 const AppDataSource = new DataSource({
   type: 'postgres',
