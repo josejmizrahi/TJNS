@@ -2,8 +2,8 @@ import { DatabaseAdapter } from '../../common/adapters/database.adapter';
 import { adapterFactory } from '../../common/adapters/adapter-factory';
 import { AppError } from '../../common/middleware/error';
 import { User } from '../../common/types/models';
-// Import types
-import { JewishIdentityEntity } from '../models';
+// Import types for type checking
+import type { JewishIdentityEntity } from '../models';
 
 export class ProfileSyncService {
   private database: DatabaseAdapter;
