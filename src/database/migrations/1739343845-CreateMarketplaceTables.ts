@@ -1,6 +1,7 @@
-import { MigrationFn } from './types';
+import { MigrationFn } from '../types';
+import { Pool } from 'pg';
 
-export const up: MigrationFn = async (client) => {
+export const up: MigrationFn = async (client: Pool) => {
   // Create enum types
   await client.query(`
     CREATE TYPE listing_status AS ENUM ('draft', 'active', 'sold', 'suspended');
@@ -62,7 +63,7 @@ export const up: MigrationFn = async (client) => {
   `);
 };
 
-export const down: MigrationFn = async (client) => {
+export const down: MigrationFn = async (client: Pool) => {
   await client.query(`
     DROP TABLE IF EXISTS marketplace_transactions;
     DROP TABLE IF EXISTS marketplace_offers;
