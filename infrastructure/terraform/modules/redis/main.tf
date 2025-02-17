@@ -36,7 +36,7 @@ resource "aws_kms_key" "redis" {
 
 # Redis parameter group
 resource "aws_elasticache_parameter_group" "main" {
-  family = "redis6.x"
+  family = "redis7"
   name   = "tjns-${var.environment}-redis-params"
 
   parameter {
