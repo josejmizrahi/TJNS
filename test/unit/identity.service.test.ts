@@ -163,7 +163,9 @@ describe('IdentityService', () => {
           firstName: 'Test',
           lastName: 'User',
           dateOfBirth: new Date('1990-01-01'),
-          documents: []
+          documents: [],
+          mfaEnabled: false,
+          mfaVerified: false
         },
         createdAt: new Date(),
         updatedAt: new Date()
@@ -176,6 +178,8 @@ describe('IdentityService', () => {
           firstName: 'Test',
           lastName: 'User',
           dateOfBirth: new Date('1990-01-01'),
+          mfaEnabled: false,
+          mfaVerified: false
         }
       );
 
@@ -203,7 +207,9 @@ describe('IdentityService', () => {
           firstName: 'Test',
           lastName: 'User',
           dateOfBirth: new Date('1990-01-01'),
-          documents: []
+          documents: [],
+          mfaEnabled: false,
+          mfaVerified: false
         },
         createdAt: new Date(),
         updatedAt: new Date()
@@ -215,7 +221,7 @@ describe('IdentityService', () => {
 
       mockDatabase.uploadDocument.mockResolvedValue({
         id: 'test-doc-id',
-        userId: userId,
+        ownerId: userId,
         type: documentType,
         ipfsCid: 'test-path',
         storageType: StorageType.SUPABASE,
@@ -223,7 +229,7 @@ describe('IdentityService', () => {
       });
 
       const result = await identityService.uploadKYCDocument(
-        userId,
+        ownerId: userId,
         documentType,
         mockFile
       );
@@ -243,7 +249,7 @@ describe('IdentityService', () => {
       // Mock document retrieval
       mockDatabase.getDocumentById.mockResolvedValue({
         id: documentId,
-        userId,
+        ownerId: userId,
         type: DocumentType.ID,
         ipfsCid: 'test-path',
         storageType: StorageType.SUPABASE,
@@ -261,7 +267,9 @@ describe('IdentityService', () => {
           firstName: 'Test',
           lastName: 'User',
           dateOfBirth: new Date('1990-01-01'),
-          documents: []
+          documents: [],
+          mfaEnabled: false,
+          mfaVerified: false
         },
         createdAt: new Date(),
         updatedAt: new Date()
