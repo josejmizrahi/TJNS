@@ -249,13 +249,10 @@ describe('JewishIdentityService', () => {
           familyTreeData: { nodes: [], edges: [] },
           maternalAncestry: { lineage: [], documents: [] },
           paternalAncestry: { lineage: [], documents: [] },
-          verifiedBy: [],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {},
           familyTreeData: { nodes: [], edges: [] },
-          maternalAncestry: { lineage: [], documents: [] }
-        })
+          maternalAncestry: { lineage: [], documents: [] },
+          paternalAncestry: { lineage: [], documents: [] }
+        } as JewishIdentityEntity)
         .mockResolvedValueOnce({
           id: motherId,
           userId: 'test-user',
@@ -267,15 +264,12 @@ describe('JewishIdentityService', () => {
           updatedAt: new Date(),
           metadata: {},
           familyTreeData: { nodes: [], edges: [] },
-          maternalAncestry: { lineage: [], documents: [] },
-          paternalAncestry: { lineage: [], documents: [] },
-          verifiedBy: [],
-          hebrewName: 'Mother Name',
           maternalAncestry: {
             lineage: motherLineage,
             documents: []
-          }
-        }));
+          },
+          paternalAncestry: { lineage: [], documents: [] }
+        } as JewishIdentityEntity);
 
       await service.addFamilyMember(identityId, 'mother', motherId, []);
 
@@ -314,12 +308,10 @@ describe('JewishIdentityService', () => {
           familyTreeData: { nodes: [], edges: [] },
           maternalAncestry: { lineage: [], documents: [] },
           paternalAncestry: { lineage: [], documents: [] },
-          verifiedBy: [],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {},
-          familyTreeData: { nodes: [], edges: [] }
-        })
+          familyTreeData: { nodes: [], edges: [] },
+          maternalAncestry: { lineage: [], documents: [] },
+          paternalAncestry: { lineage: [], documents: [] }
+        } as JewishIdentityEntity)
         .mockResolvedValueOnce({
           id: motherId,
           userId: 'test-user',
@@ -332,10 +324,8 @@ describe('JewishIdentityService', () => {
           metadata: {},
           familyTreeData: { nodes: [], edges: [] },
           maternalAncestry: { lineage: [], documents: [] },
-          paternalAncestry: { lineage: [], documents: [] },
-          verifiedBy: [],
-          hebrewName: 'Mother Name'
-        }));
+          paternalAncestry: { lineage: [], documents: [] }
+        } as JewishIdentityEntity);
 
       await service.addFamilyMember(
         identityId,
