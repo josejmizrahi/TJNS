@@ -87,7 +87,7 @@ export class IdentityService {
     if (error) throw new AppError(400, error.message);
 
     // Update user verification level and enable MFA setup
-    await this.updateVerificationLevel(userId, VerificationLevel.BASIC);
+    await this.updateVerificationLevel(userId, VerificationLevel.NONE);
     
     // Generate MFA secret and backup codes
     const mfaSecret = MFAService.generateSecret();
@@ -193,7 +193,7 @@ export class IdentityService {
 
     if (approved) {
       // Update user verification level if all required documents are verified
-      await this.updateVerificationLevel(document.userId, VerificationLevel.VERIFIED);
+      await this.updateVerificationLevel(document.userId, VerificationLevel.PHONE);
     }
   }
 
@@ -236,11 +236,11 @@ export class IdentityService {
     }
 
     switch (level) {
-      case VerificationLevel.BASIC:
-        // Requires email verification
-        return user.status === UserStatus.ACTIVE;
+      case VerificationLevel.NONE:
+        // No verification required
+        return true;
 
-      case VerificationLevel.VERIFIED: {
+      case VerificationLevel.EMAIL: {
         // Requires verified ID and synagogue documents
         const documents = await this.database.getDocumentsByUserId(userId);
         const hasVerifiedId = documents.some(
@@ -252,9 +252,9 @@ export class IdentityService {
         return hasVerifiedId && hasVerifiedSynagogue;
       }
 
-      case VerificationLevel.COMPLETE:
+      case VerificationLevel.ADVANCED:
         // Additional requirements for complete verification
-        return user.verificationLevel === VerificationLevel.VERIFIED;
+        return user.verificationLevel === VerificationLevel.PHONE;
 
       default:
         return true;
