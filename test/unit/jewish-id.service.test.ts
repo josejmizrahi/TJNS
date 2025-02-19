@@ -193,7 +193,7 @@ describe('JewishIdentityService', () => {
         .mockResolvedValueOnce(createMockIdentity(motherId, {
           verifiedBy: [],
           maternalAncestry: { lineage: [], documents: [] }
-        });
+        }));
 
       await service.addFamilyMember(
         identityId,
@@ -245,7 +245,7 @@ describe('JewishIdentityService', () => {
             lineage: motherLineage,
             documents: []
           }
-        });
+        }));
 
       await service.addFamilyMember(identityId, 'mother', motherId, []);
 
@@ -280,11 +280,8 @@ describe('JewishIdentityService', () => {
         })
         .mockResolvedValueOnce(createMockIdentity(motherId, {
           verifiedBy: [],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {},
           hebrewName: 'Mother Name'
-        });
+        }));
 
       await service.addFamilyMember(
         identityId,
