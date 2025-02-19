@@ -6,6 +6,22 @@ import { VerificationLevel } from '../../src/common/types/models';
 import { StorageType } from '../../src/common/utils/storage';
 import { JewishAffiliation, JewishIdentityEntity } from '../../src/identity/models/jewish-id.model';
 
+const createMockIdentity = (id: string, options: Partial<JewishIdentityEntity> = {}): JewishIdentityEntity => ({
+  id,
+  userId: 'test-user',
+  hebrewName: 'Test Name',
+  affiliation: JewishAffiliation.ORTHODOX,
+  verificationLevel: VerificationLevel.NONE,
+  verifiedBy: [],
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  metadata: {},
+  familyTreeData: { nodes: [], edges: [] },
+  maternalAncestry: { lineage: [], documents: [] },
+  paternalAncestry: { lineage: [], documents: [] },
+  ...options
+});
+
 jest.mock('../../src/common/utils/storage');
 jest.mock('../../src/common/utils/blockchain');
 jest.mock('../../src/common/adapters/database.adapter');
@@ -166,15 +182,7 @@ describe('JewishIdentityService', () => {
       });
 
       mockDatabase.getJewishIdentityById
-        .mockResolvedValueOnce({
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {},
-          id:identityId,
-          userId: 'test-user',
-          hebrewName: 'Test Name',
-          affiliation: JewishAffiliation.ORTHODOX,
-          verificationLevel: VerificationLevel.NONE,
+        .mockResolvedValueOnce(createMockIdentity(identityId, {
           verifiedBy: [],
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -182,15 +190,7 @@ describe('JewishIdentityService', () => {
           familyTreeData: { nodes: [], edges: [] },
           maternalAncestry: { lineage: [], documents: [] }
         })
-        .mockResolvedValueOnce({
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {},
-          id:motherId,
-          userId: 'test-user',
-          hebrewName: 'Test Name',
-          affiliation: JewishAffiliation.ORTHODOX,
-          verificationLevel: VerificationLevel.NONE,
+        .mockResolvedValueOnce(createMockIdentity(motherId, {
           verifiedBy: [],
           maternalAncestry: { lineage: [], documents: [] }
         });
@@ -230,15 +230,7 @@ describe('JewishIdentityService', () => {
 
       const motherLineage = ['grandmother-id', 'great-grandmother-id'];
       mockDatabase.getJewishIdentityById
-        .mockResolvedValueOnce({
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {},
-          id:identityId,
-          userId: 'test-user',
-          hebrewName: 'Test Name',
-          affiliation: JewishAffiliation.ORTHODOX,
-          verificationLevel: VerificationLevel.NONE,
+        .mockResolvedValueOnce(createMockIdentity(identityId, {
           verifiedBy: [],
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -246,15 +238,7 @@ describe('JewishIdentityService', () => {
           familyTreeData: { nodes: [], edges: [] },
           maternalAncestry: { lineage: [], documents: [] }
         })
-        .mockResolvedValueOnce({
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {},
-          id:motherId,
-          userId: 'test-user',
-          hebrewName: 'Test Name',
-          affiliation: JewishAffiliation.ORTHODOX,
-          verificationLevel: VerificationLevel.NONE,
+        .mockResolvedValueOnce(createMockIdentity(motherId, {
           verifiedBy: [],
           hebrewName: 'Mother Name',
           maternalAncestry: {
@@ -287,30 +271,14 @@ describe('JewishIdentityService', () => {
       });
 
       mockDatabase.getJewishIdentityById
-        .mockResolvedValueOnce({
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {},
-          id:identityId,
-          userId: 'test-user',
-          hebrewName: 'Test Name',
-          affiliation: JewishAffiliation.ORTHODOX,
-          verificationLevel: VerificationLevel.NONE,
+        .mockResolvedValueOnce(createMockIdentity(identityId, {
           verifiedBy: [],
           createdAt: new Date(),
           updatedAt: new Date(),
           metadata: {},
           familyTreeData: { nodes: [], edges: [] }
         })
-        .mockResolvedValueOnce({
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {},
-          id:motherId,
-          userId: 'test-user',
-          hebrewName: 'Test Name',
-          affiliation: JewishAffiliation.ORTHODOX,
-          verificationLevel: VerificationLevel.NONE,
+        .mockResolvedValueOnce(createMockIdentity(motherId, {
           verifiedBy: [],
           createdAt: new Date(),
           updatedAt: new Date(),
