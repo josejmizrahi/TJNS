@@ -2,7 +2,7 @@ import { Client, Wallet, Payment, TrustSet } from 'xrpl';
 import { blockchainConfig, xrplClient } from '../config/blockchain';
 import { adapterFactory } from '../adapters';
 import { DatabaseAdapter } from '../adapters/supabase.adapter';
-import { TokenType, TransactionStatus, TrustLineStatus, EscrowStatus } from '../types/models';
+import { TokenType, TransactionStatus, TrustLineStatus, EscrowStatus, BlockchainTransaction } from '../types/blockchain';
 import { AppError } from '../middleware/error';
 
 export class BlockchainService {
@@ -186,6 +186,33 @@ export class BlockchainService {
     }
     // TODO: Implement hook execution
     throw new AppError(501, 'Hook execution not implemented');
+  }
+
+  async submitTransaction(tx: BlockchainTransaction): Promise<string> {
+    switch (tx.type) {
+      case 'StoreHash': {
+        const prepared = await this.client.autofill({
+          TransactionType: 'Payment',
+          Account: blockchainConfig.coldWallet!,
+          Destination: blockchainConfig.coldWallet!,
+          Amount: '0',
+          Memos: [{
+            Memo: {
+              MemoType: Buffer.from('DocumentHash').toString('hex'),
+              MemoData: Buffer.from(tx.hash as string).toString('hex')
+            }
+          }]
+        });
+
+        const wallet = await this.getWallet(blockchainConfig.coldWallet!);
+        const signed = wallet.sign(prepared);
+        const result = await this.client.submitAndWait(signed.tx_blob);
+        return result.result.hash;
+      }
+
+      default:
+        throw new AppError(400, `Unknown transaction type: ${tx.type}`);
+    }
   }
 }
 
