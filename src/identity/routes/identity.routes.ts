@@ -22,10 +22,11 @@ router.use(authenticate);
 router.post(
   '/documents',
   upload.single('file'),
+  requireMFA,
   identityController.uploadDocument
 );
 
-router.post('/wallet', identityController.createWallet);
+router.post('/wallet', requireMFA, identityController.createWallet);
 
 // MFA routes
 router.post('/mfa/verify', async (req, res, next) => {
@@ -60,6 +61,7 @@ router.post('/mfa/verify', async (req, res, next) => {
 router.patch(
   '/documents/:documentId/verify',
   authorize('admin', 'moderator'),
+  requireMFA,
   identityController.verifyDocument
 );
 
