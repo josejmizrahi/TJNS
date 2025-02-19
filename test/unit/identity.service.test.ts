@@ -229,7 +229,7 @@ describe('IdentityService', () => {
       });
 
       const result = await identityService.uploadKYCDocument(
-        ownerId: userId,
+        userId,
         documentType,
         mockFile
       );
@@ -261,8 +261,8 @@ describe('IdentityService', () => {
         id: userId,
         email: 'test@example.com',
         role: UserRole.USER,
-        verificationLevel: VerificationLevel.BASIC,
-        status: UserStatus.ACTIVE,
+        verificationLevel: VerificationLevel.NONE,
+        status: UserStatus.PENDING,
         profile: {
           firstName: 'Test',
           lastName: 'User',
@@ -280,12 +280,18 @@ describe('IdentityService', () => {
         {
           id: 'doc-1',
           type: DocumentType.ID,
-          status: DocumentStatus.VERIFIED
+          status: DocumentStatus.VERIFIED,
+          ipfsHash: 'test-hash',
+          verifiedAt: new Date(),
+          verifiedBy: 'test-verifier'
         },
         {
           id: 'doc-2',
           type: DocumentType.SYNAGOGUE_LETTER,
-          status: DocumentStatus.VERIFIED
+          status: DocumentStatus.VERIFIED,
+          ipfsHash: 'test-hash-2',
+          verifiedAt: new Date(),
+          verifiedBy: 'test-verifier'
         }
       ]);
 
@@ -300,7 +306,7 @@ describe('IdentityService', () => {
       );
 
       expect(mockDatabase.updateUser).toHaveBeenCalledWith(userId, {
-        verificationLevel: VerificationLevel.VERIFIED,
+        verificationLevel: VerificationLevel.KYC,
         status: UserStatus.ACTIVE
       });
 
@@ -321,8 +327,13 @@ describe('IdentityService', () => {
       mockDatabase.getUserById.mockResolvedValue({
         id: userId,
         profile: {
+          firstName: 'Test',
+          lastName: 'User',
+          dateOfBirth: new Date('1990-01-01'),
+          documents: [],
           mfaSecret: secret,
-          mfaEnabled: true
+          mfaEnabled: true,
+          mfaVerified: true
         }
       });
 
@@ -337,8 +348,13 @@ describe('IdentityService', () => {
       mockDatabase.getUserById.mockResolvedValue({
         id: userId,
         profile: {
+          firstName: 'Test',
+          lastName: 'User',
+          dateOfBirth: new Date('1990-01-01'),
+          documents: [],
           mfaBackupCodes: hashedCodes,
-          mfaEnabled: true
+          mfaEnabled: true,
+          mfaVerified: true
         }
       });
 
@@ -354,8 +370,13 @@ describe('IdentityService', () => {
       mockDatabase.getUserById.mockResolvedValue({
         id: userId,
         profile: {
+          firstName: 'Test',
+          lastName: 'User',
+          dateOfBirth: new Date('1990-01-01'),
+          documents: [],
           mfaSecret: secret,
-          mfaEnabled: true
+          mfaEnabled: true,
+          mfaVerified: true
         }
       });
 
@@ -371,8 +392,13 @@ describe('IdentityService', () => {
       mockDatabase.getUserById.mockResolvedValue({
         id: userId,
         profile: {
+          firstName: 'Test',
+          lastName: 'User',
+          dateOfBirth: new Date('1990-01-01'),
+          documents: [],
           mfaBackupCodes: hashedCodes,
-          mfaEnabled: true
+          mfaEnabled: true,
+          mfaVerified: true
         }
       });
 
