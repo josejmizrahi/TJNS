@@ -2,11 +2,9 @@ import { JewishIdentityService } from '../../src/identity/services/jewish-id.ser
 import { HybridStorageService } from '../../src/common/utils/storage';
 import { BlockchainService } from '../../src/common/utils/blockchain';
 import { DatabaseAdapter } from '../../src/common/adapters/database.adapter';
-import { AppError } from '../../src/common/middleware/error';
-import { VerificationLevel, UserRole, UserStatus } from '../../src/common/types/models';
+import { VerificationLevel } from '../../src/common/types/models';
 import { StorageType } from '../../src/common/utils/storage';
-import { HebrewNameType, JewishAffiliation, TribalAffiliation, JewishIdentityEntity } from '../../src/identity/models/jewish-id.model';
-import { StorageResponse, JewishIdentityMock } from './types';
+import { JewishAffiliation, JewishIdentityEntity } from '../../src/identity/models/jewish-id.model';
 
 jest.mock('../../src/common/utils/storage');
 jest.mock('../../src/common/utils/blockchain');
@@ -175,12 +173,6 @@ describe('JewishIdentityService', () => {
           affiliation: JewishAffiliation.ORTHODOX,
           verificationLevel: VerificationLevel.NONE,
           verifiedBy: [],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {},
-          familyTreeData: { nodes: [], edges: [] },
-          maternalAncestry: { lineage: [], documents: [] },
-          paternalAncestry: { lineage: [], documents: [] },
           id: identityId,
           userId: 'test-user',
           verificationLevel: VerificationLevel.NONE,
@@ -198,12 +190,6 @@ describe('JewishIdentityService', () => {
           affiliation: JewishAffiliation.ORTHODOX,
           verificationLevel: VerificationLevel.NONE,
           verifiedBy: [],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {},
-          familyTreeData: { nodes: [], edges: [] },
-          maternalAncestry: { lineage: [], documents: [] },
-          paternalAncestry: { lineage: [], documents: [] },
           id: motherId,
           userId: 'test-user',
           verificationLevel: VerificationLevel.NONE,
@@ -257,12 +243,6 @@ describe('JewishIdentityService', () => {
           affiliation: JewishAffiliation.ORTHODOX,
           verificationLevel: VerificationLevel.NONE,
           verifiedBy: [],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {},
-          familyTreeData: { nodes: [], edges: [] },
-          maternalAncestry: { lineage: [], documents: [] },
-          paternalAncestry: { lineage: [], documents: [] },
           id: identityId,
           userId: 'test-user',
           verificationLevel: VerificationLevel.NONE,
@@ -280,12 +260,6 @@ describe('JewishIdentityService', () => {
           affiliation: JewishAffiliation.ORTHODOX,
           verificationLevel: VerificationLevel.NONE,
           verifiedBy: [],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {},
-          familyTreeData: { nodes: [], edges: [] },
-          maternalAncestry: { lineage: [], documents: [] },
-          paternalAncestry: { lineage: [], documents: [] },
           id: motherId,
           userId: 'test-user',
           verificationLevel: VerificationLevel.NONE,
@@ -331,12 +305,6 @@ describe('JewishIdentityService', () => {
           affiliation: JewishAffiliation.ORTHODOX,
           verificationLevel: VerificationLevel.NONE,
           verifiedBy: [],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {},
-          familyTreeData: { nodes: [], edges: [] },
-          maternalAncestry: { lineage: [], documents: [] },
-          paternalAncestry: { lineage: [], documents: [] },
           id: identityId,
           userId: 'test-user',
           verificationLevel: VerificationLevel.NONE,
@@ -353,12 +321,6 @@ describe('JewishIdentityService', () => {
           affiliation: JewishAffiliation.ORTHODOX,
           verificationLevel: VerificationLevel.NONE,
           verifiedBy: [],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {},
-          familyTreeData: { nodes: [], edges: [] },
-          maternalAncestry: { lineage: [], documents: [] },
-          paternalAncestry: { lineage: [], documents: [] },
           id: motherId,
           userId: 'test-user',
           verificationLevel: VerificationLevel.NONE,
