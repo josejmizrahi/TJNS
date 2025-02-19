@@ -39,7 +39,7 @@ router.post('/mfa/verify', async (req, res, next) => {
     const database = req.app.get('database') as SupabaseAdapter;
 
     if (type === 'totp') {
-      await identityController.verifyMFA(userId, token);
+      await identityController.verifyMFA({ user: { id: userId }, body: { token } } as Request, res, next);
     } else if (type === 'backup') {
       const isValid = await MFAService.validateBackupCode(token, userId, database);
       if (!isValid) {
