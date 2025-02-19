@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authenticate, authorize } from '../../common/middleware/auth';
-// Validation middleware will be added when schemas are implemented
+import { requireMFA } from '../../common/middleware';
 import identityController from '../controllers/identity.controller';
 import identityService from '../services/identity.service';
 import { MFAService } from '../../common/utils/mfa';
@@ -60,7 +60,7 @@ router.post('/mfa/verify', async (req, res, next) => {
 // Admin routes
 router.patch(
   '/documents/:documentId/verify',
-  authorize('admin', 'moderator'),
+  authorize(UserRole.ADMIN, UserRole.MODERATOR),
   requireMFA,
   identityController.verifyDocument
 );
