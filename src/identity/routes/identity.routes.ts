@@ -3,6 +3,7 @@ import { authenticate, authorize } from '../../common/middleware/auth';
 import { requireMFA } from '../../common/middleware';
 import identityController from '../controllers/identity.controller';
 import identityService from '../services/identity.service';
+import jewishIdentityService from '../services/jewish-id.service';
 import { MFAService } from '../../common/utils/mfa';
 import { UserRole } from '../../common/enums/user';
 import { SupabaseAdapter } from '../../common/adapters/supabase.adapter';
@@ -28,6 +29,47 @@ router.post(
 );
 
 router.post('/wallet', requireMFA, identityController.createWallet);
+
+// Jewish Identity routes
+router.post(
+  '/jewish-identity/:id/documents',
+  requireMFA,
+  upload.single('file'),
+  async (req, res, next) => {
+    try {
+      await jewishIdentityService.uploadVerificationDocument(
+        req.params.id,
+        req.body.documentType,
+        req.file!.buffer
+      );
+      res.status(200).json({ success: true });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+router.post(
+  '/jewish-identity/:id/family',
+  requireMFA,
+  upload.array('documents'),
+  async (req, res, next) => {
+    try {
+      await jewishIdentityService.addFamilyMember(
+        req.params.id,
+        req.body.relation,
+        req.body.memberId,
+        req.files?.map(f => ({
+          type: f.fieldname,
+          file: f.buffer
+        }))
+      );
+      res.status(200).json({ success: true });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 // MFA routes
 router.post('/mfa/verify', async (req, res, next) => {
