@@ -149,10 +149,17 @@ describe('JewishIdentityService', () => {
         path: mockPath,
         type: StorageType.IPFS,
         tag: mockTag
-      } as unknown as JewishIdentityEntity);
+      } as StorageResponse);
 
       mockDatabase.getJewishIdentityById
         .mockResolvedValueOnce({
+          id: identityId,
+          userId: 'test-user',
+          verificationLevel: VerificationLevel.NONE,
+          verifiedBy: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          metadata: {},
           createdAt: new Date(),
           updatedAt: new Date(),
           metadata: {},
@@ -161,6 +168,13 @@ describe('JewishIdentityService', () => {
           maternalAncestry: { lineage: [], documents: [] }
         })
         .mockResolvedValueOnce({
+          id: identityId,
+          userId: 'test-user',
+          verificationLevel: VerificationLevel.NONE,
+          verifiedBy: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          metadata: {},
           createdAt: new Date(),
           updatedAt: new Date(),
           metadata: {},
@@ -200,11 +214,18 @@ describe('JewishIdentityService', () => {
         path: mockPath,
         type: StorageType.IPFS,
         tag: mockTag
-      } as unknown as JewishIdentityEntity);
+      } as StorageResponse);
 
       const motherLineage = ['grandmother-id', 'great-grandmother-id'];
       mockDatabase.getJewishIdentityById
         .mockResolvedValueOnce({
+          id: identityId,
+          userId: 'test-user',
+          verificationLevel: VerificationLevel.NONE,
+          verifiedBy: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          metadata: {},
           createdAt: new Date(),
           updatedAt: new Date(),
           metadata: {},
@@ -213,6 +234,13 @@ describe('JewishIdentityService', () => {
           maternalAncestry: { lineage: [], documents: [] }
         })
         .mockResolvedValueOnce({
+          id: identityId,
+          userId: 'test-user',
+          verificationLevel: VerificationLevel.NONE,
+          verifiedBy: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          metadata: {},
           createdAt: new Date(),
           updatedAt: new Date(),
           metadata: {},
@@ -245,10 +273,17 @@ describe('JewishIdentityService', () => {
         path: mockPath,
         type: StorageType.IPFS,
         tag: mockTag
-      } as unknown as JewishIdentityEntity);
+      } as StorageResponse);
 
       mockDatabase.getJewishIdentityById
         .mockResolvedValueOnce({
+          id: identityId,
+          userId: 'test-user',
+          verificationLevel: VerificationLevel.NONE,
+          verifiedBy: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          metadata: {},
           createdAt: new Date(),
           updatedAt: new Date(),
           metadata: {},
@@ -256,6 +291,13 @@ describe('JewishIdentityService', () => {
           familyTreeData: { nodes: [], edges: [] }
         })
         .mockResolvedValueOnce({
+          id: identityId,
+          userId: 'test-user',
+          verificationLevel: VerificationLevel.NONE,
+          verifiedBy: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          metadata: {},
           createdAt: new Date(),
           updatedAt: new Date(),
           metadata: {},
