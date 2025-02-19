@@ -5,7 +5,7 @@ import { DatabaseAdapter } from '../../src/common/adapters/database.adapter';
 import { AppError } from '../../src/common/middleware/error';
 import { VerificationLevel, UserRole, UserStatus } from '../../src/common/types/models';
 import { StorageType } from '../../src/common/utils/storage';
-import { HebrewNameType, JewishAffiliation, TribalAffiliation } from '../../src/identity/models/jewish-id.model';
+import { HebrewNameType, JewishAffiliation, TribalAffiliation, JewishIdentityEntity } from '../../src/identity/models/jewish-id.model';
 
 jest.mock('../../src/common/utils/storage');
 jest.mock('../../src/common/utils/blockchain');
@@ -55,20 +55,17 @@ describe('JewishIdentityService', () => {
         path: mockPath,
         type: StorageType.IPFS,
         tag: mockTag
-      });
+      } as JewishIdentityEntity);
 
       mockBlockchain.submitTransaction.mockResolvedValue(mockTxHash);
 
       mockDatabase.getJewishIdentityById.mockResolvedValue({
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        metadata: {},
         id: documentId,
         userId,
         verificationDocuments: [],
         verificationLevel: VerificationLevel.NONE,
         verifiedBy: []
-      });
+      } as JewishIdentityEntity);
 
       await service.uploadVerificationDocument(documentId, documentType, documentBuffer);
 
@@ -76,7 +73,7 @@ describe('JewishIdentityService', () => {
       expect(mockBlockchain.submitTransaction).toHaveBeenCalledWith({
         type: 'StoreHash',
         hash: mockPath
-      });
+      } as JewishIdentityEntity);
       expect(mockDatabase.updateJewishIdentity).toHaveBeenCalledWith(
         documentId,
         expect.objectContaining({
@@ -94,9 +91,6 @@ describe('JewishIdentityService', () => {
     it('should update verification level with proper documents', async () => {
       const verifierId = 'test-verifier';
       mockDatabase.getJewishIdentityById.mockResolvedValue({
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        metadata: {},
         id: documentId,
         userId,
         hebrewName: 'Test Name',
@@ -127,15 +121,12 @@ describe('JewishIdentityService', () => {
 
     it('should reject invalid verification level changes', async () => {
       mockDatabase.getJewishIdentityById.mockResolvedValue({
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        metadata: {},
         id: documentId,
         userId,
         verificationDocuments: [],
         verificationLevel: VerificationLevel.NONE,
         verifiedBy: []
-      });
+      } as JewishIdentityEntity);
 
       await expect(
         service.updateVerificationLevel(documentId, VerificationLevel.VERIFIED, 'verifier')
@@ -157,25 +148,19 @@ describe('JewishIdentityService', () => {
         path: mockPath,
         type: StorageType.IPFS,
         tag: mockTag
-      });
+      } as JewishIdentityEntity);
 
       mockDatabase.getJewishIdentityById
         .mockResolvedValueOnce({
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {},
           id: identityId,
           familyTreeData: { nodes: [], edges: [] },
           maternalAncestry: { lineage: [], documents: [] }
         })
         .mockResolvedValueOnce({
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {},
           id: motherId,
           hebrewName: 'Mother Name',
           maternalAncestry: { lineage: [], documents: [] }
-        });
+        } as JewishIdentityEntity);
 
       await service.addFamilyMember(
         identityId,
@@ -208,29 +193,23 @@ describe('JewishIdentityService', () => {
         path: mockPath,
         type: StorageType.IPFS,
         tag: mockTag
-      });
+      } as JewishIdentityEntity);
 
       const motherLineage = ['grandmother-id', 'great-grandmother-id'];
       mockDatabase.getJewishIdentityById
         .mockResolvedValueOnce({
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {},
           id: identityId,
           familyTreeData: { nodes: [], edges: [] },
           maternalAncestry: { lineage: [], documents: [] }
         })
         .mockResolvedValueOnce({
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {},
           id: motherId,
           hebrewName: 'Mother Name',
           maternalAncestry: {
             lineage: motherLineage,
             documents: []
           }
-        });
+        } as JewishIdentityEntity);
 
       await service.addFamilyMember(identityId, 'mother', motherId, []);
 
@@ -253,23 +232,17 @@ describe('JewishIdentityService', () => {
         path: mockPath,
         type: StorageType.IPFS,
         tag: mockTag
-      });
+      } as JewishIdentityEntity);
 
       mockDatabase.getJewishIdentityById
         .mockResolvedValueOnce({
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {},
           id: identityId,
           familyTreeData: { nodes: [], edges: [] }
         })
         .mockResolvedValueOnce({
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {},
           id: motherId,
           hebrewName: 'Mother Name'
-        });
+        } as JewishIdentityEntity);
 
       await service.addFamilyMember(
         identityId,
