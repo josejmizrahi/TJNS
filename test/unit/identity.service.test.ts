@@ -159,6 +159,8 @@ describe('IdentityService', () => {
         verificationLevel: VerificationLevel.NONE,
         status: UserStatus.PENDING,
         passwordHash: 'mock-hash',
+        createdAt: new Date(),
+        updatedAt: new Date(),
         profile: {
           firstName: 'Test',
           lastName: 'User',
@@ -201,6 +203,8 @@ describe('IdentityService', () => {
         role: UserRole.USER,
         verificationLevel: VerificationLevel.NONE,
         status: UserStatus.PENDING,
+        createdAt: new Date(),
+        updatedAt: new Date(),
         profile: {
           firstName: 'Test',
           lastName: 'User',
