@@ -70,8 +70,11 @@ describe('JewishIdentityService', () => {
         verifiedBy: [],
         createdAt: new Date(),
         updatedAt: new Date(),
-        metadata: {}
-      } as JewishIdentityEntity);
+        metadata: {},
+        familyTreeData: { nodes: [], edges: [] },
+        maternalAncestry: { lineage: [], documents: [] },
+        paternalAncestry: { lineage: [], documents: [] }
+      } as unknown as JewishIdentityEntity);
 
       await service.uploadVerificationDocument(documentId, documentType, documentBuffer);
 
@@ -136,8 +139,11 @@ describe('JewishIdentityService', () => {
         verifiedBy: [],
         createdAt: new Date(),
         updatedAt: new Date(),
-        metadata: {}
-      } as JewishIdentityEntity);
+        metadata: {},
+        familyTreeData: { nodes: [], edges: [] },
+        maternalAncestry: { lineage: [], documents: [] },
+        paternalAncestry: { lineage: [], documents: [] }
+      } as unknown as JewishIdentityEntity);
 
       await expect(
         service.updateVerificationLevel(documentId, VerificationLevel.VERIFIED, 'verifier')
@@ -172,6 +178,9 @@ describe('JewishIdentityService', () => {
           createdAt: new Date(),
           updatedAt: new Date(),
           metadata: {},
+          familyTreeData: { nodes: [], edges: [] },
+          maternalAncestry: { lineage: [], documents: [] },
+          paternalAncestry: { lineage: [], documents: [] },
           id: identityId,
           userId: 'test-user',
           verificationLevel: VerificationLevel.NONE,
@@ -192,6 +201,9 @@ describe('JewishIdentityService', () => {
           createdAt: new Date(),
           updatedAt: new Date(),
           metadata: {},
+          familyTreeData: { nodes: [], edges: [] },
+          maternalAncestry: { lineage: [], documents: [] },
+          paternalAncestry: { lineage: [], documents: [] },
           id: motherId,
           userId: 'test-user',
           verificationLevel: VerificationLevel.NONE,
@@ -248,6 +260,9 @@ describe('JewishIdentityService', () => {
           createdAt: new Date(),
           updatedAt: new Date(),
           metadata: {},
+          familyTreeData: { nodes: [], edges: [] },
+          maternalAncestry: { lineage: [], documents: [] },
+          paternalAncestry: { lineage: [], documents: [] },
           id: identityId,
           userId: 'test-user',
           verificationLevel: VerificationLevel.NONE,
@@ -268,6 +283,9 @@ describe('JewishIdentityService', () => {
           createdAt: new Date(),
           updatedAt: new Date(),
           metadata: {},
+          familyTreeData: { nodes: [], edges: [] },
+          maternalAncestry: { lineage: [], documents: [] },
+          paternalAncestry: { lineage: [], documents: [] },
           id: motherId,
           userId: 'test-user',
           verificationLevel: VerificationLevel.NONE,
@@ -316,6 +334,9 @@ describe('JewishIdentityService', () => {
           createdAt: new Date(),
           updatedAt: new Date(),
           metadata: {},
+          familyTreeData: { nodes: [], edges: [] },
+          maternalAncestry: { lineage: [], documents: [] },
+          paternalAncestry: { lineage: [], documents: [] },
           id: identityId,
           userId: 'test-user',
           verificationLevel: VerificationLevel.NONE,
@@ -335,6 +356,9 @@ describe('JewishIdentityService', () => {
           createdAt: new Date(),
           updatedAt: new Date(),
           metadata: {},
+          familyTreeData: { nodes: [], edges: [] },
+          maternalAncestry: { lineage: [], documents: [] },
+          paternalAncestry: { lineage: [], documents: [] },
           id: motherId,
           userId: 'test-user',
           verificationLevel: VerificationLevel.NONE,
