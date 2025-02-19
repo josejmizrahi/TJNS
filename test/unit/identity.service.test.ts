@@ -221,8 +221,9 @@ describe('IdentityService', () => {
 
       mockDatabase.uploadDocument.mockResolvedValue({
         id: 'test-doc-id',
-        ownerId: userId,
+        userId,
         type: documentType,
+        ipfsHash: 'test-hash',
         ipfsCid: 'test-path',
         storageType: StorageType.SUPABASE,
         status: DocumentStatus.PENDING,
@@ -249,8 +250,9 @@ describe('IdentityService', () => {
       // Mock document retrieval
       mockDatabase.getDocumentById.mockResolvedValue({
         id: documentId,
-        ownerId: userId,
+        userId,
         type: DocumentType.ID,
+        ipfsHash: 'test-hash',
         ipfsCid: 'test-path',
         storageType: StorageType.SUPABASE,
         status: DocumentStatus.PENDING,
@@ -282,16 +284,22 @@ describe('IdentityService', () => {
           type: DocumentType.ID,
           status: DocumentStatus.VERIFIED,
           ipfsHash: 'test-hash',
+          ipfsCid: 'test-cid-1',
+          storageType: StorageType.SUPABASE,
           verifiedAt: new Date(),
-          verifiedBy: 'test-verifier'
+          verifiedBy: 'test-verifier',
+          userId
         },
         {
           id: 'doc-2',
           type: DocumentType.SYNAGOGUE_LETTER,
           status: DocumentStatus.VERIFIED,
           ipfsHash: 'test-hash-2',
+          ipfsCid: 'test-cid-2',
+          storageType: StorageType.SUPABASE,
           verifiedAt: new Date(),
-          verifiedBy: 'test-verifier'
+          verifiedBy: 'test-verifier',
+          userId
         }
       ]);
 
@@ -326,6 +334,10 @@ describe('IdentityService', () => {
 
       mockDatabase.getUserById.mockResolvedValue({
         id: userId,
+        email: 'test@example.com',
+        role: UserRole.USER,
+        verificationLevel: VerificationLevel.NONE,
+        status: UserStatus.PENDING,
         profile: {
           firstName: 'Test',
           lastName: 'User',
@@ -347,6 +359,10 @@ describe('IdentityService', () => {
 
       mockDatabase.getUserById.mockResolvedValue({
         id: userId,
+        email: 'test@example.com',
+        role: UserRole.USER,
+        verificationLevel: VerificationLevel.NONE,
+        status: UserStatus.PENDING,
         profile: {
           firstName: 'Test',
           lastName: 'User',
@@ -369,6 +385,10 @@ describe('IdentityService', () => {
 
       mockDatabase.getUserById.mockResolvedValue({
         id: userId,
+        email: 'test@example.com',
+        role: UserRole.USER,
+        verificationLevel: VerificationLevel.NONE,
+        status: UserStatus.PENDING,
         profile: {
           firstName: 'Test',
           lastName: 'User',
@@ -391,6 +411,10 @@ describe('IdentityService', () => {
 
       mockDatabase.getUserById.mockResolvedValue({
         id: userId,
+        email: 'test@example.com',
+        role: UserRole.USER,
+        verificationLevel: VerificationLevel.NONE,
+        status: UserStatus.PENDING,
         profile: {
           firstName: 'Test',
           lastName: 'User',
