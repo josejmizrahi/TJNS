@@ -1,10 +1,17 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import 'reflect-metadata';
+import { VerificationLevel } from '../../common/enums/user';
 
 export enum HebrewNameType {
   BIRTH = 'birth',
   CHOSEN = 'chosen',
   BOTH = 'both'
+}
+
+export enum TribalAffiliation {
+  KOHEN = 'kohen',
+  LEVI = 'levi',
+  ISRAEL = 'israel'
 }
 
 export enum JewishAffiliation {
@@ -49,6 +56,51 @@ export class JewishIdentityEntity {
 
   @Column({ nullable: true })
   community?: string;
+
+  @Column({
+    type: 'enum',
+    enum: TribalAffiliation,
+    nullable: true
+  })
+  tribalAffiliation?: TribalAffiliation;
+
+  @Column('jsonb', { nullable: true })
+  maternalAncestry?: {
+    lineage: string[];
+    documents: Array<{
+      type: string;
+      ipfsHash: string;
+      verifiedAt?: Date;
+      verifiedBy?: string;
+    }>;
+  };
+
+  @Column('jsonb', { nullable: true })
+  paternalAncestry?: {
+    lineage: string[];
+    documents: Array<{
+      type: string;
+      ipfsHash: string;
+      verifiedAt?: Date;
+      verifiedBy?: string;
+    }>;
+  };
+
+  @Column({ 
+    type: 'enum',
+    enum: VerificationLevel,
+    default: VerificationLevel.NONE
+  })
+  verificationLevel!: VerificationLevel;
+
+  @Column('jsonb', { default: [] })
+  verificationDocuments!: Array<{
+    type: string;
+    ipfsHash: string;
+    encryptionTag: string;
+    verifiedAt?: Date;
+    verifiedBy?: string;
+  }>;
 
   @Column('jsonb', { nullable: true })
   familyHistory?: {
