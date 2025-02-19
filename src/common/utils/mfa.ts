@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from 'crypto';
 import { authenticator } from 'otplib';
+import { SupabaseAdapter } from '../adapters/supabase.adapter';
 
 export class MFAService {
   static generateSecret(): string {
@@ -49,7 +50,7 @@ export class MFAService {
 
     if (isValid) {
       // Remove used backup code
-      const updatedCodes = user.profile.mfaBackupCodes.filter(c => c !== hashedCode);
+      const updatedCodes = user.profile.mfaBackupCodes.filter((c: string) => c !== hashedCode);
       await database.updateUser(userId, {
         profile: {
           ...user.profile,
