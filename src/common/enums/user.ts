@@ -7,10 +7,9 @@ export enum UserRole {
 
 export enum VerificationLevel {
   NONE = 'none',
-  EMAIL = 'email',
-  PHONE = 'phone',
-  KYC = 'kyc',
-  ADVANCED = 'advanced'
+  BASIC = 'basic',
+  VERIFIED = 'verified',
+  COMPLETE = 'complete'
 }
 
 export enum UserStatus {

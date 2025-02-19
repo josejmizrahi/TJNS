@@ -43,7 +43,9 @@ export interface KYCDocument {
   type: string;
   status: string;
   ipfsHash: string;
+  ipfsCid?: string;
+  storageType?: string;
   verifiedAt?: Date;
   verifiedBy?: string;
-  ownerId: string;
+  userId: string;
 }
