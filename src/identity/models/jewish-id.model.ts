@@ -113,6 +113,26 @@ export class JewishIdentityEntity {
     };
   };
 
+  @Column('jsonb', { default: '{}' })
+  familyTreeData!: {
+    nodes: Array<{
+      id: string;
+      type: string;
+      name: string;
+      documents?: Array<{
+        type: string;
+        ipfsHash: string;
+        verifiedAt?: Date;
+        verifiedBy?: string;
+      }>;
+    }>;
+    edges: Array<{
+      from: string;
+      to: string;
+      relationship: string;
+    }>;
+  };
+
   @Column('text', { array: true, default: [] })
   verifiedBy!: string[];
 
