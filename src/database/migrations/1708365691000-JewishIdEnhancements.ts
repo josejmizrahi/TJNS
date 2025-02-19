@@ -12,7 +12,8 @@ export class JewishIdEnhancements1708365691000 implements MigrationInterface {
       ADD COLUMN "maternal_ancestry" jsonb,
       ADD COLUMN "paternal_ancestry" jsonb,
       ADD COLUMN "verification_level" verification_level_enum DEFAULT 'none',
-      ADD COLUMN "verification_documents" jsonb DEFAULT '[]';
+      ADD COLUMN "verification_documents" jsonb DEFAULT '[]',
+      ADD COLUMN "family_tree_data" jsonb DEFAULT '{}';
     `);
   }
 
@@ -23,7 +24,8 @@ export class JewishIdEnhancements1708365691000 implements MigrationInterface {
       DROP COLUMN "maternal_ancestry",
       DROP COLUMN "paternal_ancestry",
       DROP COLUMN "verification_level",
-      DROP COLUMN "verification_documents";
+      DROP COLUMN "verification_documents",
+      DROP COLUMN "family_tree_data";
 
       DROP TYPE "tribal_affiliation_enum";
     `);
