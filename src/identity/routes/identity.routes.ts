@@ -1,4 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import { Express } from 'express-serve-static-core';
 import { authenticate, authorize } from '../../common/middleware/auth';
 import { requireMFA } from '../../common/middleware';
 import identityController from '../controllers/identity.controller';
@@ -59,10 +60,10 @@ router.post(
         req.params.id,
         req.body.relation,
         req.body.memberId,
-        req.files?.map(f => ({
+        Array.isArray(req.files) ? req.files.map((f: Express.Multer.File) => ({
           type: f.fieldname,
           file: f.buffer
-        }))
+        })) : []
       );
       res.status(200).json({ success: true });
     } catch (error) {
