@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from './error';
-import { MFAService } from '../utils/mfa';
+
 import { SupabaseAdapter } from '../adapters/supabase.adapter';
 
 export const requireMFA = async (req: Request, res: Response, next: NextFunction) => {
