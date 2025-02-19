@@ -40,8 +40,8 @@ export interface UserProfile {
 
 export interface KYCDocument {
   id: string;
-  type: string;
-  status: string;
+  type: DocumentType;
+  status: DocumentStatus;
   ipfsHash: string;
   ipfsCid?: string;
   storageType?: string;
