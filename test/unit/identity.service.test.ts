@@ -306,7 +306,7 @@ describe('IdentityService', () => {
       );
 
       expect(mockDatabase.updateUser).toHaveBeenCalledWith(userId, {
-        verificationLevel: VerificationLevel.KYC,
+        verificationLevel: VerificationLevel.VERIFIED,
         status: UserStatus.ACTIVE
       });
 
