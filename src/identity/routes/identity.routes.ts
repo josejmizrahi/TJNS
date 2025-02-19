@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { authenticate, authorize } from '../../common/middleware/auth';
 import { requireMFA } from '../../common/middleware';
 import identityController from '../controllers/identity.controller';
@@ -35,7 +35,7 @@ router.post(
   '/jewish-identity/:id/documents',
   requireMFA,
   upload.single('file'),
-  async (req, res, next) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
       await jewishIdentityService.uploadVerificationDocument(
         req.params.id,
@@ -53,7 +53,7 @@ router.post(
   '/jewish-identity/:id/family',
   requireMFA,
   upload.array('documents'),
-  async (req, res, next) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
       await jewishIdentityService.addFamilyMember(
         req.params.id,
@@ -72,7 +72,7 @@ router.post(
 );
 
 // MFA routes
-router.post('/mfa/verify', async (req, res, next) => {
+router.post('/mfa/verify', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { token, type } = req.body;
     const userId = req.user?.id;
