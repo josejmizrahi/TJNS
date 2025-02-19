@@ -1,4 +1,13 @@
-import { VerificationLevel, UserRole } from '../enums/user';
+import { VerificationLevel, UserRole, UserStatus } from '../enums/user';
+import { DocumentType, DocumentStatus } from '../enums/document';
+
+export {
+  DocumentType,
+  DocumentStatus,
+  VerificationLevel,
+  UserRole,
+  UserStatus
+};
 
 export interface BaseEntity {
   id: string;
@@ -10,6 +19,8 @@ export interface User extends BaseEntity {
   email: string;
   role: UserRole;
   verificationLevel: VerificationLevel;
+  status: UserStatus;
+  passwordHash: string;
   profile: UserProfile;
 }
 
@@ -29,9 +40,12 @@ export interface UserProfile {
 
 export interface KYCDocument {
   id: string;
-  type: string;
-  status: string;
+  type: DocumentType;
+  status: DocumentStatus;
   ipfsHash: string;
+  ipfsCid?: string;
+  storageType?: string;
   verifiedAt?: Date;
   verifiedBy?: string;
+  userId: string;
 }

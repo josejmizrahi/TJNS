@@ -78,6 +78,18 @@ export class IdentityController {
       next(error);
     }
   }
+
+  async verifyMFA(req: Request, res: Response, next: NextFunction) {
+    try {
+      await identityService.verifyMFA(req.user!.id, req.body.token);
+      res.status(200).json({
+        status: 'success',
+        message: 'MFA verified successfully'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export default new IdentityController();

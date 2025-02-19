@@ -87,7 +87,7 @@ export class IdentityService {
     if (error) throw new AppError(400, error.message);
 
     // Update user verification level and enable MFA setup
-    await this.updateVerificationLevel(userId, VerificationLevel.BASIC);
+    await this.updateVerificationLevel(userId, VerificationLevel.NONE);
     
     // Generate MFA secret and backup codes
     const mfaSecret = MFAService.generateSecret();
@@ -236,9 +236,9 @@ export class IdentityService {
     }
 
     switch (level) {
-      case VerificationLevel.BASIC:
-        // Requires email verification
-        return user.status === UserStatus.ACTIVE;
+      case VerificationLevel.NONE:
+        // No verification required
+        return true;
 
       case VerificationLevel.VERIFIED: {
         // Requires verified ID and synagogue documents
