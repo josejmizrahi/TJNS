@@ -37,4 +37,27 @@ export class MFAService {
     const hashedCode = createHash('sha256').update(code).digest('hex');
     return hashedCodes.includes(hashedCode);
   }
+
+  static async validateBackupCode(code: string, userId: string, database: SupabaseAdapter): Promise<boolean> {
+    const user = await database.getUserById(userId);
+    if (!user?.profile.mfaBackupCodes) {
+      return false;
+    }
+
+    const hashedCode = createHash('sha256').update(code).digest('hex');
+    const isValid = user.profile.mfaBackupCodes.includes(hashedCode);
+
+    if (isValid) {
+      // Remove used backup code
+      const updatedCodes = user.profile.mfaBackupCodes.filter(c => c !== hashedCode);
+      await database.updateUser(userId, {
+        profile: {
+          ...user.profile,
+          mfaBackupCodes: updatedCodes
+        }
+      });
+    }
+
+    return isValid;
+  }
 }
