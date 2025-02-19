@@ -169,8 +169,6 @@ describe('JewishIdentityService', () => {
         .mockResolvedValueOnce({
           id: identityId,
           userId: 'test-user',
-          id: identityId,
-          userId: 'test-user',
           hebrewName: 'Test Name',
           affiliation: JewishAffiliation.ORTHODOX,
           verificationLevel: VerificationLevel.NONE,
@@ -182,8 +180,6 @@ describe('JewishIdentityService', () => {
           maternalAncestry: { lineage: [], documents: [] }
         })
         .mockResolvedValueOnce({
-          id: identityId,
-          userId: 'test-user',
           id: motherId,
           userId: 'test-user',
           hebrewName: 'Test Name',
@@ -235,8 +231,6 @@ describe('JewishIdentityService', () => {
         .mockResolvedValueOnce({
           id: identityId,
           userId: 'test-user',
-          id: identityId,
-          userId: 'test-user',
           hebrewName: 'Test Name',
           affiliation: JewishAffiliation.ORTHODOX,
           verificationLevel: VerificationLevel.NONE,
@@ -248,8 +242,6 @@ describe('JewishIdentityService', () => {
           maternalAncestry: { lineage: [], documents: [] }
         })
         .mockResolvedValueOnce({
-          id: identityId,
-          userId: 'test-user',
           id: motherId,
           userId: 'test-user',
           hebrewName: 'Test Name',
@@ -293,8 +285,6 @@ describe('JewishIdentityService', () => {
         .mockResolvedValueOnce({
           id: identityId,
           userId: 'test-user',
-          id: identityId,
-          userId: 'test-user',
           hebrewName: 'Test Name',
           affiliation: JewishAffiliation.ORTHODOX,
           verificationLevel: VerificationLevel.NONE,
@@ -305,8 +295,6 @@ describe('JewishIdentityService', () => {
           familyTreeData: { nodes: [], edges: [] }
         })
         .mockResolvedValueOnce({
-          id: identityId,
-          userId: 'test-user',
           id: motherId,
           userId: 'test-user',
           hebrewName: 'Test Name',
