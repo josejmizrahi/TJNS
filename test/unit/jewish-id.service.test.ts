@@ -63,10 +63,15 @@ describe('JewishIdentityService', () => {
       mockDatabase.getJewishIdentityById.mockResolvedValue({
         id: documentId,
         userId,
+        hebrewName: 'Test Name',
+        affiliation: JewishAffiliation.ORTHODOX,
         verificationDocuments: [],
         verificationLevel: VerificationLevel.NONE,
-        verifiedBy: []
-      });
+        verifiedBy: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        metadata: {}
+      } as JewishIdentityEntity);
 
       await service.uploadVerificationDocument(documentId, documentType, documentBuffer);
 
@@ -124,10 +129,15 @@ describe('JewishIdentityService', () => {
       mockDatabase.getJewishIdentityById.mockResolvedValue({
         id: documentId,
         userId,
+        hebrewName: 'Test Name',
+        affiliation: JewishAffiliation.ORTHODOX,
         verificationDocuments: [],
         verificationLevel: VerificationLevel.NONE,
-        verifiedBy: []
-      });
+        verifiedBy: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        metadata: {}
+      } as JewishIdentityEntity);
 
       await expect(
         service.updateVerificationLevel(documentId, VerificationLevel.VERIFIED, 'verifier')
@@ -155,6 +165,15 @@ describe('JewishIdentityService', () => {
         .mockResolvedValueOnce({
           id: identityId,
           userId: 'test-user',
+          hebrewName: 'Test Name',
+          affiliation: JewishAffiliation.ORTHODOX,
+          verificationLevel: VerificationLevel.NONE,
+          verifiedBy: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          metadata: {},
+          id: identityId,
+          userId: 'test-user',
           verificationLevel: VerificationLevel.NONE,
           verifiedBy: [],
           createdAt: new Date(),
@@ -164,6 +183,15 @@ describe('JewishIdentityService', () => {
           maternalAncestry: { lineage: [], documents: [] }
         })
         .mockResolvedValueOnce({
+          id: identityId,
+          userId: 'test-user',
+          hebrewName: 'Test Name',
+          affiliation: JewishAffiliation.ORTHODOX,
+          verificationLevel: VerificationLevel.NONE,
+          verifiedBy: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          metadata: {},
           id: motherId,
           userId: 'test-user',
           verificationLevel: VerificationLevel.NONE,
@@ -213,6 +241,15 @@ describe('JewishIdentityService', () => {
         .mockResolvedValueOnce({
           id: identityId,
           userId: 'test-user',
+          hebrewName: 'Test Name',
+          affiliation: JewishAffiliation.ORTHODOX,
+          verificationLevel: VerificationLevel.NONE,
+          verifiedBy: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          metadata: {},
+          id: identityId,
+          userId: 'test-user',
           verificationLevel: VerificationLevel.NONE,
           verifiedBy: [],
           createdAt: new Date(),
@@ -222,6 +259,15 @@ describe('JewishIdentityService', () => {
           maternalAncestry: { lineage: [], documents: [] }
         })
         .mockResolvedValueOnce({
+          id: identityId,
+          userId: 'test-user',
+          hebrewName: 'Test Name',
+          affiliation: JewishAffiliation.ORTHODOX,
+          verificationLevel: VerificationLevel.NONE,
+          verifiedBy: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          metadata: {},
           id: motherId,
           userId: 'test-user',
           verificationLevel: VerificationLevel.NONE,
@@ -263,6 +309,15 @@ describe('JewishIdentityService', () => {
         .mockResolvedValueOnce({
           id: identityId,
           userId: 'test-user',
+          hebrewName: 'Test Name',
+          affiliation: JewishAffiliation.ORTHODOX,
+          verificationLevel: VerificationLevel.NONE,
+          verifiedBy: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          metadata: {},
+          id: identityId,
+          userId: 'test-user',
           verificationLevel: VerificationLevel.NONE,
           verifiedBy: [],
           createdAt: new Date(),
@@ -271,6 +326,15 @@ describe('JewishIdentityService', () => {
           familyTreeData: { nodes: [], edges: [] }
         })
         .mockResolvedValueOnce({
+          id: identityId,
+          userId: 'test-user',
+          hebrewName: 'Test Name',
+          affiliation: JewishAffiliation.ORTHODOX,
+          verificationLevel: VerificationLevel.NONE,
+          verifiedBy: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          metadata: {},
           id: motherId,
           userId: 'test-user',
           verificationLevel: VerificationLevel.NONE,
