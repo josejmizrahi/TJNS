@@ -102,7 +102,10 @@ export class JewishIdentityService {
     );
 
     // Store document hash on XRPL for immutability
-    const txHash = await this.blockchain.storeDocumentHash(path);
+    const documentHash = await this.blockchain.submitTransaction({
+      type: 'StoreHash',
+      hash: path
+    });
 
     await this.database.updateJewishIdentity(identityId, {
       verificationDocuments: [
@@ -110,9 +113,9 @@ export class JewishIdentityService {
         {
           type: documentType,
           ipfsHash: path,
-          encryptionTag: tag,
-          uploadedAt: new Date(),
-          xrplTxHash: txHash
+          encryptionTag: tag || '',
+          verifiedAt: new Date(),
+          verifiedBy: undefined
         }
       ]
     });
@@ -163,7 +166,7 @@ export class JewishIdentityService {
           doc.type,
           doc.file
         );
-        return { type: doc.type, ipfsHash: path, encryptionTag: tag };
+        return { type: doc.type, ipfsHash: path, encryptionTag: tag || '' };
       })
     );
 
