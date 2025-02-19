@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authenticate, authorize } from '../../common/middleware/auth';
 // Validation middleware will be added when schemas are implemented
 import identityController from '../controllers/identity.controller';
+import identityService from '../services/identity.service';
 import { MFAService } from '../../common/utils/mfa';
 import { AppError } from '../../common/middleware/error';
 import { SupabaseAdapter } from '../../common/adapters/supabase.adapter';
