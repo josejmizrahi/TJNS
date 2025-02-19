@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { IdentityService } from '../../src/identity/services/identity.service';
 import { HybridStorageService } from '../../src/common/utils/storage';
 import { BlockchainService } from '../../src/common/utils/blockchain';
+import { MFAService } from '../../src/common/utils/mfa';
+import { authenticator } from 'otplib';
 import { DocumentType, DocumentStatus, VerificationLevel, UserRole, UserStatus } from '../../src/common/types/models';
 import { StorageType } from '../../src/common/utils/storage';
 import type { AuthUser as SupabaseAuthUser, Session } from '@supabase/supabase-js';
@@ -299,6 +301,75 @@ describe('IdentityService', () => {
         'verification_level_changed',
         { userId, newLevel: VerificationLevel.VERIFIED }
       );
+    });
+  });
+
+  describe('MFA Verification', () => {
+    it('should verify valid TOTP token', async () => {
+      const userId = 'test-user-id';
+      const secret = MFAService.generateSecret();
+      const token = authenticator.generate(secret);
+
+      mockDatabase.getUserById.mockResolvedValue({
+        id: userId,
+        profile: {
+          mfaSecret: secret,
+          mfaEnabled: true
+        }
+      });
+
+      await expect(identityService.verifyMFA(userId, token)).resolves.not.toThrow();
+    });
+
+    it('should verify valid backup code', async () => {
+      const userId = 'test-user-id';
+      const backupCodes = MFAService.generateBackupCodes();
+      const hashedCodes = MFAService.hashBackupCodes(backupCodes);
+
+      mockDatabase.getUserById.mockResolvedValue({
+        id: userId,
+        profile: {
+          mfaBackupCodes: hashedCodes,
+          mfaEnabled: true
+        }
+      });
+
+      const isValid = await MFAService.validateBackupCode(backupCodes[0], userId, mockDatabase);
+      expect(isValid).toBe(true);
+    });
+
+    it('should fail with invalid TOTP token', async () => {
+      const userId = 'test-user-id';
+      const secret = MFAService.generateSecret();
+      const invalidToken = '123456';
+
+      mockDatabase.getUserById.mockResolvedValue({
+        id: userId,
+        profile: {
+          mfaSecret: secret,
+          mfaEnabled: true
+        }
+      });
+
+      await expect(identityService.verifyMFA(userId, invalidToken)).rejects.toThrow('Invalid MFA token');
+    });
+
+    it('should fail with invalid backup code', async () => {
+      const userId = 'test-user-id';
+      const backupCodes = MFAService.generateBackupCodes();
+      const hashedCodes = MFAService.hashBackupCodes(backupCodes);
+      const invalidCode = '123456';
+
+      mockDatabase.getUserById.mockResolvedValue({
+        id: userId,
+        profile: {
+          mfaBackupCodes: hashedCodes,
+          mfaEnabled: true
+        }
+      });
+
+      const isValid = await MFAService.validateBackupCode(invalidCode, userId, mockDatabase);
+      expect(isValid).toBe(false);
     });
   });
 });
