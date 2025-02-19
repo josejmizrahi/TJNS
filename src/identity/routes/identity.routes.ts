@@ -1,10 +1,9 @@
 import { Router } from 'express';
 import { authenticate, authorize } from '../../common/middleware/auth';
-import { requireMFA } from '../../common/middleware';
+import { requireMFA, AppError } from '../../common/middleware';
 import identityController from '../controllers/identity.controller';
 import identityService from '../services/identity.service';
 import { MFAService } from '../../common/utils/mfa';
-import { AppError } from '../../common/middleware/error';
 import { UserRole } from '../../common/enums/user';
 import { SupabaseAdapter } from '../../common/adapters/supabase.adapter';
 import multer from 'multer';
