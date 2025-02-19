@@ -193,7 +193,7 @@ export class IdentityService {
 
     if (approved) {
       // Update user verification level if all required documents are verified
-      await this.updateVerificationLevel(document.userId, VerificationLevel.PHONE);
+      await this.updateVerificationLevel(document.userId, VerificationLevel.VERIFIED);
     }
   }
 
@@ -240,7 +240,7 @@ export class IdentityService {
         // No verification required
         return true;
 
-      case VerificationLevel.EMAIL: {
+      case VerificationLevel.VERIFIED: {
         // Requires verified ID and synagogue documents
         const documents = await this.database.getDocumentsByUserId(userId);
         const hasVerifiedId = documents.some(
@@ -252,9 +252,9 @@ export class IdentityService {
         return hasVerifiedId && hasVerifiedSynagogue;
       }
 
-      case VerificationLevel.ADVANCED:
+      case VerificationLevel.COMPLETE:
         // Additional requirements for complete verification
-        return user.verificationLevel === VerificationLevel.PHONE;
+        return user.verificationLevel === VerificationLevel.VERIFIED;
 
       default:
         return true;
