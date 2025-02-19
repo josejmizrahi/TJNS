@@ -1,4 +1,13 @@
-import { VerificationLevel, UserRole } from '../enums/user';
+import { VerificationLevel, UserRole, UserStatus } from '../enums/user';
+import { DocumentType, DocumentStatus } from '../enums/document';
+
+export {
+  DocumentType,
+  DocumentStatus,
+  VerificationLevel,
+  UserRole,
+  UserStatus
+};
 
 export interface BaseEntity {
   id: string;
