@@ -6,23 +6,22 @@ import { VerificationLevel } from '../../src/common/types/models';
 import { StorageType } from '../../src/common/utils/storage';
 import { JewishAffiliation, JewishIdentityEntity } from '../../src/identity/models/jewish-id.model';
 
-const createBaseMockIdentity = (id: string, overrides: Partial<JewishIdentityEntity> = {}): JewishIdentityEntity => {
-  const base = {
-    id,
-    userId: 'test-user',
-    hebrewName: 'Test Name',
-    affiliation: JewishAffiliation.ORTHODOX,
-    verificationLevel: VerificationLevel.NONE,
-    verifiedBy: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    metadata: {},
-    familyTreeData: { nodes: [], edges: [] },
-    maternalAncestry: { lineage: [], documents: [] },
-    paternalAncestry: { lineage: [], documents: [] }
-  };
-  return { ...base, ...overrides } as JewishIdentityEntity;
-};
+const createBaseMockIdentity = (id: string, overrides: Partial<JewishIdentityEntity> = {}): JewishIdentityEntity => ({
+  id,
+  userId: 'test-user',
+  hebrewName: 'Test Name',
+  affiliation: JewishAffiliation.ORTHODOX,
+  verificationLevel: VerificationLevel.NONE,
+  verifiedBy: [],
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  metadata: {},
+  familyTreeData: { nodes: [], edges: [] },
+  maternalAncestry: { lineage: [], documents: [] },
+  paternalAncestry: { lineage: [], documents: [] },
+  verificationDocuments: [],
+  ...overrides
+} as unknown as JewishIdentityEntity);
 
 jest.mock('../../src/common/utils/storage');
 jest.mock('../../src/common/utils/blockchain');
@@ -184,11 +183,10 @@ describe('JewishIdentityService', () => {
       });
 
       mockDatabase.getJewishIdentityById
-        .mockResolvedValueOnce(createBaseMockIdentity(identityId
-        ))
+        .mockResolvedValueOnce(createBaseMockIdentity(identityId))
         .mockResolvedValueOnce(createBaseMockIdentity(motherId, {
           hebrewName: 'Mother Name'
-        } as JewishIdentityEntity);
+        }));
 
       await service.addFamilyMember(
         identityId,
@@ -225,28 +223,13 @@ describe('JewishIdentityService', () => {
 
       const motherLineage = ['grandmother-id', 'great-grandmother-id'];
       mockDatabase.getJewishIdentityById
-        .mockResolvedValueOnce(createBaseMockIdentity(identityId, {
-          familyTreeData: { nodes: [], edges: [] },
-          maternalAncestry: { lineage: [], documents: [] },
-          paternalAncestry: { lineage: [], documents: [] }
-        } as JewishIdentityEntity)
-        .mockResolvedValueOnce({
-          id: motherId,
-          userId: 'test-user',
-          hebrewName: 'Mother Name',
-          affiliation: JewishAffiliation.ORTHODOX,
-          verificationLevel: VerificationLevel.NONE,
-          verifiedBy: [],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {},
-          familyTreeData: { nodes: [], edges: [] },
+        .mockResolvedValueOnce(createBaseMockIdentity(identityId))
+        .mockResolvedValueOnce(createBaseMockIdentity(motherId, {
           maternalAncestry: {
             lineage: motherLineage,
             documents: []
-          },
-          paternalAncestry: { lineage: [], documents: [] }
-        } as JewishIdentityEntity);
+          }
+        }));
 
       await service.addFamilyMember(identityId, 'mother', motherId, []);
 
@@ -272,14 +255,10 @@ describe('JewishIdentityService', () => {
       });
 
       mockDatabase.getJewishIdentityById
-        .mockResolvedValueOnce(createBaseMockIdentity(identityId, {
-          familyTreeData: { nodes: [], edges: [] },
-          maternalAncestry: { lineage: [], documents: [] },
-          paternalAncestry: { lineage: [], documents: [] }
-        } as JewishIdentityEntity)
+        .mockResolvedValueOnce(createBaseMockIdentity(identityId))
         .mockResolvedValueOnce(createBaseMockIdentity(motherId, {
           hebrewName: 'Mother Name'
-        } as JewishIdentityEntity);
+        }));
 
       await service.addFamilyMember(
         identityId,
