@@ -66,7 +66,7 @@ describe('JewishIdentityService', () => {
         verificationDocuments: [],
         verificationLevel: VerificationLevel.NONE,
         verifiedBy: []
-      } as unknown as JewishIdentityEntity);
+      });
 
       await service.uploadVerificationDocument(documentId, documentType, documentBuffer);
 
@@ -127,7 +127,7 @@ describe('JewishIdentityService', () => {
         verificationDocuments: [],
         verificationLevel: VerificationLevel.NONE,
         verifiedBy: []
-      } as unknown as JewishIdentityEntity);
+      });
 
       await expect(
         service.updateVerificationLevel(documentId, VerificationLevel.VERIFIED, 'verifier')
@@ -149,7 +149,7 @@ describe('JewishIdentityService', () => {
         path: mockPath,
         type: StorageType.IPFS,
         tag: mockTag
-      } as StorageResponse);
+      });
 
       mockDatabase.getJewishIdentityById
         .mockResolvedValueOnce({
@@ -160,28 +160,20 @@ describe('JewishIdentityService', () => {
           createdAt: new Date(),
           updatedAt: new Date(),
           metadata: {},
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {},
-          id: identityId,
           familyTreeData: { nodes: [], edges: [] },
           maternalAncestry: { lineage: [], documents: [] }
         })
         .mockResolvedValueOnce({
-          id: identityId,
+          id: motherId,
           userId: 'test-user',
           verificationLevel: VerificationLevel.NONE,
           verifiedBy: [],
           createdAt: new Date(),
           updatedAt: new Date(),
           metadata: {},
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {},
-          id: motherId,
           hebrewName: 'Mother Name',
           maternalAncestry: { lineage: [], documents: [] }
-        } as unknown as JewishIdentityEntity);
+        });
 
       await service.addFamilyMember(
         identityId,
@@ -214,7 +206,7 @@ describe('JewishIdentityService', () => {
         path: mockPath,
         type: StorageType.IPFS,
         tag: mockTag
-      } as StorageResponse);
+      });
 
       const motherLineage = ['grandmother-id', 'great-grandmother-id'];
       mockDatabase.getJewishIdentityById
@@ -226,31 +218,23 @@ describe('JewishIdentityService', () => {
           createdAt: new Date(),
           updatedAt: new Date(),
           metadata: {},
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {},
-          id: identityId,
           familyTreeData: { nodes: [], edges: [] },
           maternalAncestry: { lineage: [], documents: [] }
         })
         .mockResolvedValueOnce({
-          id: identityId,
+          id: motherId,
           userId: 'test-user',
           verificationLevel: VerificationLevel.NONE,
           verifiedBy: [],
           createdAt: new Date(),
           updatedAt: new Date(),
           metadata: {},
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {},
-          id: motherId,
           hebrewName: 'Mother Name',
           maternalAncestry: {
             lineage: motherLineage,
             documents: []
           }
-        } as unknown as JewishIdentityEntity);
+        });
 
       await service.addFamilyMember(identityId, 'mother', motherId, []);
 
@@ -273,7 +257,7 @@ describe('JewishIdentityService', () => {
         path: mockPath,
         type: StorageType.IPFS,
         tag: mockTag
-      } as StorageResponse);
+      });
 
       mockDatabase.getJewishIdentityById
         .mockResolvedValueOnce({
@@ -284,26 +268,18 @@ describe('JewishIdentityService', () => {
           createdAt: new Date(),
           updatedAt: new Date(),
           metadata: {},
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {},
-          id: identityId,
           familyTreeData: { nodes: [], edges: [] }
         })
         .mockResolvedValueOnce({
-          id: identityId,
+          id: motherId,
           userId: 'test-user',
           verificationLevel: VerificationLevel.NONE,
           verifiedBy: [],
           createdAt: new Date(),
           updatedAt: new Date(),
           metadata: {},
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          metadata: {},
-          id: motherId,
           hebrewName: 'Mother Name'
-        } as unknown as JewishIdentityEntity);
+        });
 
       await service.addFamilyMember(
         identityId,
