@@ -166,9 +166,7 @@ describe('IdentityService', () => {
           documents: [],
           mfaEnabled: false,
           mfaVerified: false
-        },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        }
       });
 
       const result = await identityService.registerUser(
@@ -210,9 +208,7 @@ describe('IdentityService', () => {
           documents: [],
           mfaEnabled: false,
           mfaVerified: false
-        },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        }
       });
       mockStorage.uploadKYCDocument.mockResolvedValue({
         path: 'test-path',
@@ -275,9 +271,7 @@ describe('IdentityService', () => {
           documents: [],
           mfaEnabled: false,
           mfaVerified: false
-        },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        }
       });
 
       // Mock document list for verification requirements
