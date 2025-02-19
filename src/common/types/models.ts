@@ -19,6 +19,8 @@ export interface User extends BaseEntity {
   email: string;
   role: UserRole;
   verificationLevel: VerificationLevel;
+  status: UserStatus;
+  passwordHash: string;
   profile: UserProfile;
 }
 
@@ -43,4 +45,5 @@ export interface KYCDocument {
   ipfsHash: string;
   verifiedAt?: Date;
   verifiedBy?: string;
+  ownerId: string;
 }
