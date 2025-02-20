@@ -17,8 +17,8 @@ export interface StorageOptions {
 
 export class HybridStorageService {
   constructor(
-    private supabaseStorage: StorageAdapter,
-    private ipfs: IPFSService,
+    private readonly supabaseStorage: StorageAdapter,
+    private readonly ipfs: IPFSService,
     private readonly encryption: EncryptionService
   ) {}
 
@@ -142,7 +142,8 @@ export class HybridStorageService {
   }
 }
 
-export default new HybridStorageService(
+// Export a singleton instance
+const storageService = new HybridStorageService(
   new SupabaseStorageAdapter(
     process.env.SUPABASE_URL!,
     process.env.SUPABASE_ANON_KEY!
@@ -150,3 +151,5 @@ export default new HybridStorageService(
   new IPFSService(),
   new EncryptionService()
 );
+
+export default storageService;

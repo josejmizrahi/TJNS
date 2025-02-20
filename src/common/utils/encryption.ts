@@ -39,4 +39,6 @@ export class EncryptionService {
   }
 }
 
-export default new EncryptionService();
+// Export a singleton instance
+const encryptionService = new EncryptionService();
+export default encryptionService;
