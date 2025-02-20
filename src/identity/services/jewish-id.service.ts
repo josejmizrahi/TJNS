@@ -1,4 +1,4 @@
-import { JewishIdentityEntity, HebrewNameType, JewishAffiliation, TribalAffiliation } from '../models/jewish-id.model';
+import { JewishIdentityEntity, HebrewNameType, JewishAffiliation } from '../models/jewish-id.model';
 import { AppError } from '../../common/middleware/error';
 import { DatabaseAdapter } from '../../common/adapters/database.adapter';
 import { adapterFactory } from '../../common/adapters/adapter-factory';
@@ -32,10 +32,11 @@ export class JewishIdentityService {
 
   constructor(
     storageService: HybridStorageService,
-    blockchainService: BlockchainService
+    blockchainService: BlockchainService,
+    databaseAdapter?: DatabaseAdapter
   ) {
     this.storage = storageService;
-    this.database = adapterFactory.getDatabaseAdapter();
+    this.database = databaseAdapter || adapterFactory.getDatabaseAdapter();
     this.blockchain = blockchainService;
   }
 
@@ -67,8 +68,15 @@ export class JewishIdentityService {
     return savedIdentity;
   }
 
-  async getIdentity(userId: string): Promise<JewishIdentityEntity> {
-    const identity = await this.database.getJewishIdentityByUserId(userId);
+  async getIdentity(id: string): Promise<JewishIdentityEntity> {
+    // Try to find by ID first
+    let identity = await this.database.getJewishIdentityById(id);
+    
+    // If not found, try by userId
+    if (!identity) {
+      identity = await this.database.getJewishIdentityByUserId(id);
+    }
+    
     if (!identity) {
       throw new AppError(404, 'Jewish identity profile not found');
     }
@@ -95,14 +103,14 @@ export class JewishIdentityService {
     file: Buffer
   ): Promise<void> {
     const identity = await this.getIdentity(identityId);
-    const { path, type, tag } = await this.storage.uploadFile(
+    const { path, tag } = await this.storage.uploadFile(
       `verification/${identityId}/${documentType}_${Date.now()}`,
       file,
       { type: StorageType.IPFS, encrypted: true }
     );
 
     // Store document hash on XRPL for immutability
-    const documentHash = await this.blockchain.submitTransaction({
+    await this.blockchain.submitTransaction({
       type: 'StoreHash',
       hash: path
     });
@@ -204,9 +212,13 @@ export class JewishIdentityService {
     mother: JewishIdentityEntity,
     documents: Array<{ type: string; ipfsHash: string; encryptionTag: string }>
   ): Promise<void> {
+    // Get mother's lineage
+    const motherLineage = mother.maternalAncestry?.lineage || [];
+    
+    // Update identity with mother's lineage
     await this.database.updateJewishIdentity(identity.id, {
       maternalAncestry: {
-        lineage: [mother.id, ...(mother.maternalAncestry?.lineage || [])],
+        lineage: [mother.id, ...motherLineage],
         documents: [...documents, ...(mother.maternalAncestry?.documents || [])]
       }
     });

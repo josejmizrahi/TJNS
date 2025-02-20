@@ -2,7 +2,7 @@ import { Client, Wallet, Payment, TrustSet } from 'xrpl';
 import { blockchainConfig, xrplClient } from '../config/blockchain';
 import { adapterFactory } from '../adapters';
 import { DatabaseAdapter } from '../adapters/supabase.adapter';
-import { TokenType, TransactionStatus, TrustLineStatus, EscrowStatus, BlockchainTransaction } from '../types/blockchain';
+import { TokenType, TransactionStatus, TrustLineStatus, EscrowStatus, BlockchainTransaction } from '../../blockchain/types';
 import { AppError } from '../middleware/error';
 
 export class BlockchainService {
