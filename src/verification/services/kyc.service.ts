@@ -1,6 +1,6 @@
 import { StorageType } from '../../common/utils/storage';
 import { BaseVerificationService } from './base-verification.service';
-import { DocumentVerification } from '../types/models';
+import { DocumentVerification } from '@/verification/types/models';
 import { auditLogger, AuditEventType } from '../../common/utils/audit';
 import { HybridStorageService } from '../../common/utils/storage';
 import { BlockchainService } from '../../common/utils/blockchain';

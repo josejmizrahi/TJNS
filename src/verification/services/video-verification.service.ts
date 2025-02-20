@@ -1,6 +1,6 @@
 import { StorageType } from '../../common/utils/storage';
 import { BaseVerificationService } from './base-verification.service';
-import { VideoVerification } from '../types/models';
+import { VideoVerification } from '@/verification/types/models';
 import { auditLogger, AuditEventType } from '../../common/utils/audit';
 import { HybridStorageService } from '../../common/utils/storage';
 import { BlockchainService } from '../../common/utils/blockchain';
@@ -110,7 +110,7 @@ export class VideoVerificationService extends BaseVerificationService<VideoVerif
     });
 
     // Update session
-    session.status = 'completed';
+    session.status = 'approved';
     session.recordingHash = path;
     session.notes = notes;
     this.verifications.set(sessionId, session);
