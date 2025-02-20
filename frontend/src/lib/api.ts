@@ -15,6 +15,26 @@ export interface VerificationResponse {
   data?: VerificationData;
 }
 
+interface CommunityVerificationData {
+  synagogueName: string;
+  rabbiName: string;
+  rabbiEmail: string;
+  hebrewName: string;
+  communityRole?: string;
+}
+
+interface Reference {
+  name: string;
+  email: string;
+  relationship: string;
+}
+
+interface GovernanceVerificationData {
+  references: Reference[];
+  participationHistory: string;
+  additionalNotes?: string;
+}
+
 export const api = {
   async verifyDocument(documentData: { encrypted: string; key: string }): Promise<VerificationResponse> {
     const response = await fetch(`${API_BASE_URL}/api/v1/verification/document`, {
@@ -58,6 +78,38 @@ export const api = {
 
   async getAvailableSlots(): Promise<VerificationResponse> {
     const response = await fetch(`${API_BASE_URL}/api/v1/verification/video/slots`, {
+      credentials: 'include',
+    });
+    
+    return response.json();
+  },
+
+  async submitCommunityVerification(data: CommunityVerificationData): Promise<VerificationResponse> {
+    const response = await fetch(`${API_BASE_URL}/api/v1/verification/community`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'DENY',
+        'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+      },
+      body: JSON.stringify(data),
+      credentials: 'include',
+    });
+    
+    return response.json();
+  },
+
+  async submitGovernanceVerification(data: GovernanceVerificationData): Promise<VerificationResponse> {
+    const response = await fetch(`${API_BASE_URL}/api/v1/verification/governance`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'DENY',
+        'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+      },
+      body: JSON.stringify(data),
       credentials: 'include',
     });
     
