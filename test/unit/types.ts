@@ -19,12 +19,25 @@ export interface JewishIdentityMock {
   verificationLevel?: string;
   verifiedBy?: string[];
   familyTreeData?: {
-    nodes: any[];
-    edges: any[];
+    nodes: Array<{
+      id: string;
+      type: string;
+      name: string;
+    }>;
+    edges: Array<{
+      from: string;
+      to: string;
+      relationship: string;
+    }>;
   };
   maternalAncestry?: {
     lineage: string[];
-    documents: any[];
+    documents: Array<{
+      type: string;
+      ipfsHash: string;
+      verifiedAt?: Date;
+      verifiedBy?: string;
+    }>;
   };
   createdAt: Date;
   updatedAt: Date;
