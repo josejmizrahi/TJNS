@@ -4,10 +4,18 @@ import { storageConfig } from '../config/storage';
 export class EncryptionService {
   private readonly algorithm: string;
   private readonly keyLength: number;
+  private static instance: EncryptionService | null = null;
 
   constructor() {
     this.algorithm = storageConfig.encryption.algorithm;
     this.keyLength = storageConfig.encryption.keyLength;
+  }
+
+  public static getInstance(): EncryptionService {
+    if (!EncryptionService.instance) {
+      EncryptionService.instance = new EncryptionService();
+    }
+    return EncryptionService.instance;
   }
 
   async encrypt(data: Buffer): Promise<{ encrypted: Buffer; key: Buffer; iv: Buffer }> {
@@ -32,13 +40,10 @@ export class EncryptionService {
     ]);
   }
 
-  // Key rotation methods
   async rotateKey(data: Buffer, oldKey: Buffer, oldIv: Buffer): Promise<{ encrypted: Buffer; key: Buffer; iv: Buffer }> {
     const decrypted = await this.decrypt(data, oldKey, oldIv);
     return this.encrypt(decrypted);
   }
 }
 
-// Export a singleton instance
-const encryptionService = new EncryptionService();
-export default encryptionService;
+export default EncryptionService.getInstance();

@@ -16,11 +16,24 @@ export interface StorageOptions {
 }
 
 export class HybridStorageService {
-  constructor(
+  private static instance: HybridStorageService | null = null;
+
+  private constructor(
     private readonly supabaseStorage: StorageAdapter,
     private readonly ipfs: IPFSService,
     private readonly encryption: EncryptionService
   ) {}
+
+  public static getInstance(
+    supabaseStorage: StorageAdapter,
+    ipfs: IPFSService,
+    encryption: EncryptionService
+  ): HybridStorageService {
+    if (!HybridStorageService.instance) {
+      HybridStorageService.instance = new HybridStorageService(supabaseStorage, ipfs, encryption);
+    }
+    return HybridStorageService.instance;
+  }
 
   async uploadFile(
     path: string,
@@ -106,13 +119,11 @@ export class HybridStorageService {
     }
   }
 
-  // Helper methods for specific document types
   async uploadKYCDocument(
     userId: string,
     documentType: string,
     file: Buffer
   ): Promise<{ path: string; type: StorageType }> {
-    // KYC documents go to Supabase Storage for better access control
     return this.uploadFile(
       `kyc/${userId}/${documentType}_${Date.now()}`,
       file,
@@ -130,7 +141,6 @@ export class HybridStorageService {
     documentType: string,
     file: Buffer
   ): Promise<{ path: string; type: StorageType; tag?: string }> {
-    // Family/genealogical documents go to IPFS for permanence
     return this.uploadFile(
       `genealogy/${treeId}/${memberId}/${documentType}_${Date.now()}`,
       file,
@@ -142,14 +152,11 @@ export class HybridStorageService {
   }
 }
 
-// Export a singleton instance
-const storageService = new HybridStorageService(
+export default HybridStorageService.getInstance(
   new SupabaseStorageAdapter(
     process.env.SUPABASE_URL!,
     process.env.SUPABASE_ANON_KEY!
   ),
   new IPFSService(),
-  new EncryptionService()
+  EncryptionService.getInstance()
 );
-
-export default storageService;
