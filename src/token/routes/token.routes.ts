@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authenticate, authorize } from '../../common/middleware/auth';
+import { UserRole } from '../../common/enums/user';
 // Validation middleware will be added when schemas are implemented
 import tokenController from '../controllers/token.controller';
 
@@ -16,7 +17,7 @@ router.get('/balance', tokenController.getBalance);
 // Admin/Oracle routes
 router.post(
   '/award-mitzvah-points',
-  authorize('admin', 'oracle'),
+  authorize(UserRole.ADMIN, UserRole.VERIFIER),
   tokenController.awardMitzvahPoints
 );
 

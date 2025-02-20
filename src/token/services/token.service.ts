@@ -1,13 +1,8 @@
 // XRPL client is imported from blockchain config
 import { BlockchainService } from '../../common/utils/blockchain';
-import { 
-  Transaction, 
-  TokenType, 
-  TransactionType, 
-  TransactionStatus,
-  TrustLineStatus,
-  VerificationLevel
-} from '../../common/types/models';
+import { TokenType, TransactionStatus, TrustLineStatus } from '../../blockchain/types';
+import { Transaction, TransactionType } from '../models/token.model';
+import { VerificationLevel } from '../../common/enums/user';
 import { AppError } from '../../common/middleware/error';
 import { blockchainConfig } from '../../common/config/blockchain';
 import { adapterFactory } from '../../common/adapters';
@@ -136,21 +131,21 @@ export class TokenService {
   ): Promise<number> {
     // Get rule for action type
     const rule = await this.database.getMitzvahPointsRule(action);
-    if (!rule || !rule.isActive) {
+    if (!rule || !rule.is_active) {
       throw new AppError(400, `No active rule found for action: ${action}`);
     }
 
     // Calculate base points with multiplier
-    let points = rule.basePoints * rule.multiplier;
+    let points = rule.base_points * rule.multiplier;
 
     // Apply any contextual multipliers from metadata
     if (metadata.multiplier) {
-      points *= metadata.multiplier;
+      points *= Number(metadata.multiplier);
     }
 
     // Cap points if maximum is defined
-    if (rule.maxPoints) {
-      points = Math.min(points, rule.maxPoints);
+    if (rule.max_points) {
+      points = Math.min(points, rule.max_points);
     }
 
     return Math.floor(points);

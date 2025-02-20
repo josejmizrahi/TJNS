@@ -12,6 +12,13 @@ export class ListingService {
     this.storage = storage;
   }
 
+  private convertToEntity(listing: Partial<ListingEntity>): ListingEntity {
+    return new ListingEntity({
+      ...listing,
+      category: listing.category || ListingCategory.OTHER
+    });
+  }
+
   async createListing(
     sellerId: string,
     data: {
@@ -71,7 +78,8 @@ export class ListingService {
         metadata: data.metadata || {}
       });
 
-      return await this.database.createListing(listing);
+      const result = await this.database.createListing(listing);
+      return this.convertToEntity(result);
     } catch (error) {
       throw new AppError(500, `Failed to create listing: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -92,7 +100,8 @@ export class ListingService {
       throw new AppError(403, 'Not authorized to update this listing');
     }
 
-    return await this.database.updateListing(listingId, data);
+    const result = await this.database.updateListing(listingId, data);
+    return this.convertToEntity(result);
   }
 
   async getListing(listingId: string): Promise<ListingEntity> {
@@ -102,7 +111,7 @@ export class ListingService {
       throw new AppError(404, 'Listing not found');
     }
 
-    return listing;
+    return this.convertToEntity(listing);
   }
 
   async searchListings(
@@ -114,10 +123,14 @@ export class ListingService {
       kosherCertified?: boolean;
     }
   ): Promise<{ items: ListingEntity[]; total: number }> {
-    return await this.database.searchListings({
+    const listings = await this.database.searchListings({
       ...params,
       status: ListingStatus.ACTIVE
     });
+    return {
+      items: listings.map(l => this.convertToEntity(l)),
+      total: listings.length
+    };
   }
 
   async publishListing(listingId: string, sellerId: string): Promise<ListingEntity> {
@@ -156,6 +169,6 @@ export class ListingService {
 
 export default new ListingService(new HybridStorageService(
   adapterFactory.getStorageAdapter(),
-  adapterFactory.getIPFSAdapter(),
+  adapterFactory.getIPFSService(),
   adapterFactory.getEncryptionService()
 ));
