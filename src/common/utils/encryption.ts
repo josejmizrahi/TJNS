@@ -24,7 +24,11 @@ export class EncryptionService {
     this.key = Buffer.from(process.env.ENCRYPTION_KEY, 'hex');
     this.iv = Buffer.from(process.env.ENCRYPTION_IV, 'hex');
     this.oldKeys = new Map();
-    this.currentKey = this.generateNewKey();
+    this.currentKey = {
+      key: crypto.randomBytes(32),
+      createdAt: new Date(),
+      id: crypto.randomBytes(16).toString('hex')
+    };
   }
 
   static getInstance(): EncryptionService {
@@ -67,15 +71,6 @@ export class EncryptionService {
         }
       }
     }
-  }
-
-  constructor() {
-    if (!process.env.ENCRYPTION_KEY || !process.env.ENCRYPTION_IV) {
-      throw new Error('Encryption key and IV must be set');
-    }
-
-    this.key = Buffer.from(process.env.ENCRYPTION_KEY, 'hex');
-    this.iv = Buffer.from(process.env.ENCRYPTION_IV, 'hex');
   }
 
   generateTag(): string {
@@ -173,4 +168,4 @@ export class EncryptionService {
   }
 }
 
-export default new EncryptionService();
+export const encryptionService = EncryptionService.getInstance();
