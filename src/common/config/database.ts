@@ -1,7 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { config as dotenvConfig } from 'dotenv';
-
-dotenvConfig();
+import { config } from './app';
 
 if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
   throw new Error('Missing Supabase configuration. Please check your environment variables.');
@@ -22,7 +20,7 @@ export const supabase = createClient(
     },
     global: {
       headers: {
-        'x-application-name': 'jns'
+        'x-application-name': config.appName
       }
     }
   }
@@ -44,7 +42,7 @@ export const supabaseAdmin = process.env.SUPABASE_SERVICE_KEY
         },
         global: {
           headers: {
-            'x-application-name': 'jns-admin'
+            'x-application-name': `${config.appName}-admin`
           }
         }
       }
@@ -59,7 +57,7 @@ export const testConnection = async () => {
     return true;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    throw new Error(`Supabase connection error: ${errorMessage}`);
+    throw new Error(`Database connection error: ${errorMessage}`);
     return false;
   }
 };
