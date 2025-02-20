@@ -46,5 +46,5 @@ export const sanitize = (obj: unknown): SanitizedValue => {
     }, {});
   }
   
-  return obj;
+  return obj as SanitizedValue;
 };
