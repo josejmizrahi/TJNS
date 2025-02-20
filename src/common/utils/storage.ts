@@ -1,6 +1,6 @@
 import { SupabaseStorageAdapter } from '../adapters/storage.adapter';
 import { IPFSService } from './ipfs';
-import { encryptionService } from './encryption';
+import { encryptionService, EncryptionService } from './encryption';
 import { AppError } from '../middleware/error';
 import type { StorageAdapter } from '../adapters/storage.adapter';
 
