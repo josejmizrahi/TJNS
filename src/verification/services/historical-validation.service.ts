@@ -1,97 +1,123 @@
+import { createHash } from 'crypto';
 import { auditLogger, AuditEventType } from '../../common/utils/audit';
+import { HybridStorageService, StorageType } from '../../common/utils/storage';
 import { BlockchainService } from '../../common/utils/blockchain';
+import storage from '../../common/utils/storage';
+import blockchain from '../../common/utils/blockchain';
 
-interface ParticipationRecord {
+interface HistoricalRecord {
   userId: string;
-  eventType: 'community' | 'governance' | 'financial';
+  recordType: string;
+  recordHash: string;
   timestamp: Date;
-  details: Record<string, unknown>;
-  verifiedBy: string[];
+  verified: boolean;
 }
 
 export class HistoricalValidationService {
   private static instance: HistoricalValidationService;
-  private participationRecords: Map<string, ParticipationRecord[]>;
+  private records: Map<string, HistoricalRecord>;
+  private storage: HybridStorageService;
   private blockchain: BlockchainService;
 
-  private constructor(blockchainService: BlockchainService) {
-    this.participationRecords = new Map();
+  private constructor(
+    storageService: HybridStorageService,
+    blockchainService: BlockchainService
+  ) {
+    this.records = new Map();
+    this.storage = storageService;
     this.blockchain = blockchainService;
   }
 
-  static getInstance(blockchainService: BlockchainService): HistoricalValidationService {
+  static getInstance(
+    storageService: HybridStorageService,
+    blockchainService: BlockchainService
+  ): HistoricalValidationService {
     if (!HistoricalValidationService.instance) {
-      HistoricalValidationService.instance = new HistoricalValidationService(blockchainService);
+      HistoricalValidationService.instance = new HistoricalValidationService(
+        storageService,
+        blockchainService
+      );
     }
     return HistoricalValidationService.instance;
   }
 
-  async recordParticipation(
+  async addRecord(
     userId: string,
-    eventType: 'community' | 'governance' | 'financial',
-    details: Record<string, unknown>,
-    verifierId: string
-  ): Promise<void> {
-    const userRecords = this.participationRecords.get(userId) || [];
-    
-    const record: ParticipationRecord = {
+    recordType: string,
+    recordData: Buffer
+  ): Promise<string> {
+    const recordHash = createHash('sha256')
+      .update(recordData)
+      .digest('hex');
+
+    const record: HistoricalRecord = {
       userId,
-      eventType,
+      recordType,
+      recordHash,
       timestamp: new Date(),
-      details,
-      verifiedBy: [verifierId]
+      verified: false
     };
 
-    userRecords.push(record);
-    this.participationRecords.set(userId, userRecords);
+    // Store encrypted record in IPFS
+    const { path } = await this.storage.uploadFile(
+      `historical/${recordType}/${recordHash}`,
+      recordData,
+      { type: StorageType.IPFS, encrypted: true }
+    );
 
-    // Store record hash on blockchain
-    const recordHash = await this.blockchain.submitTransaction({
-      type: 'StoreParticipation',
-      data: {
-        userId,
-        eventType,
-        timestamp: record.timestamp,
-        detailsHash: this.hashDetails(details)
-      }
+    // Store hash on blockchain
+    await this.blockchain.submitTransaction({
+      type: 'StoreHash',
+      hash: path
     });
+
+    this.records.set(recordHash, record);
 
     auditLogger.logEvent({
       type: AuditEventType.VERIFICATION_ATTEMPT,
       userId,
-      action: 'record_participation',
+      action: 'add_historical_record',
       status: 'success',
       metadata: {
-        eventType,
-        verifierId,
+        recordType,
         recordHash
+      }
+    });
+
+    return recordHash;
+  }
+
+  async verifyRecord(recordHash: string, verifierId: string): Promise<void> {
+    const record = this.records.get(recordHash);
+    if (!record) {
+      throw new Error('Record not found');
+    }
+
+    record.verified = true;
+    this.records.set(recordHash, record);
+
+    auditLogger.logEvent({
+      type: AuditEventType.VERIFICATION_ATTEMPT,
+      userId: record.userId,
+      action: 'verify_historical_record',
+      status: 'success',
+      metadata: {
+        recordHash,
+        verifierId
       }
     });
   }
 
-  async validateHistory(
-    userId: string,
-    requiredEvents: Array<{
-      type: 'community' | 'governance' | 'financial';
-      minCount: number;
-    }>
-  ): Promise<boolean> {
-    const records = this.participationRecords.get(userId) || [];
-    
-    return requiredEvents.every(requirement => {
-      const count = records.filter(r => r.eventType === requirement.type).length;
-      return count >= requirement.minCount;
-    });
-  }
-
-  private hashDetails(details: Record<string, unknown>): string {
-    return require('crypto')
-      .createHash('sha256')
-      .update(JSON.stringify(details))
-      .digest('hex');
+  async getRecordStatus(recordHash: string): Promise<HistoricalRecord> {
+    const record = this.records.get(recordHash);
+    if (!record) {
+      throw new Error('Record not found');
+    }
+    return record;
   }
 }
 
 export const historicalValidationService = HistoricalValidationService.getInstance(
-  new BlockchainService()
+  storage,
+  blockchain
 );

@@ -1,44 +1,34 @@
-import rateLimit from 'express-rate-limit';
-import { auditLogger, AuditEventType } from '../utils/audit';
+import { Request, Response, NextFunction } from 'express';
+import { AppError } from './error';
 
-export const verificationRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 attempts per window
-  message: 'Too many verification attempts, please try again later',
-  handler: (req, res, next) => {
-    auditLogger.logEvent({
-      type: AuditEventType.VERIFICATION_ATTEMPT,
-      userId: req.user?.id || 'anonymous',
-      action: 'rate_limit_exceeded',
-      status: 'failure',
-      metadata: {
-        ip: req.ip,
-        endpoint: req.originalUrl
-      }
-    });
-    res.status(429).json({
-      error: 'Too many verification attempts, please try again later'
-    });
-  }
-});
+const rateLimits = new Map<string, { count: number; resetTime: number }>();
+const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const MAX_REQUESTS = 100;
 
-export const mfaRateLimit = rateLimit({
-  windowMs: 5 * 60 * 1000, // 5 minutes
-  max: 3, // 3 attempts per window
-  message: 'Too many MFA attempts, please try again later',
-  handler: (req, res, next) => {
-    auditLogger.logEvent({
-      type: AuditEventType.MFA_VERIFICATION,
-      userId: req.user?.id || 'anonymous',
-      action: 'rate_limit_exceeded',
-      status: 'failure',
-      metadata: {
-        ip: req.ip,
-        endpoint: req.originalUrl
-      }
+export const rateLimit = (req: Request, res: Response, _next: NextFunction) => {
+  const ip = req.ip;
+  const now = Date.now();
+  const limit = rateLimits.get(ip);
+
+  if (!limit) {
+    rateLimits.set(ip, {
+      count: 1,
+      resetTime: now + WINDOW_MS
     });
-    res.status(429).json({
-      error: 'Too many MFA attempts, please try again later'
-    });
+    return _next();
   }
-});
+
+  if (now > limit.resetTime) {
+    limit.count = 1;
+    limit.resetTime = now + WINDOW_MS;
+    return _next();
+  }
+
+  if (limit.count >= MAX_REQUESTS) {
+    throw new AppError('Too many requests', 429);
+  }
+
+  limit.count++;
+  rateLimits.set(ip, limit);
+  _next();
+};
