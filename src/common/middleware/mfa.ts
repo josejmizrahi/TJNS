@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from './error';
-import { SupabaseAdapter } from '../adapters/supabase.adapter';
 
 interface AuthenticatedRequest extends Request {
   user?: {
