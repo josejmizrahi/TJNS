@@ -128,7 +128,11 @@ export class KYCService {
   }
 }
 
+// Initialize services
+const storageService = new HybridStorageService();
+const blockchainService = new BlockchainService();
+
 export const kycService = KYCService.getInstance(
-  new HybridStorageService(),
-  new BlockchainService()
+  storageService,
+  blockchainService
 );

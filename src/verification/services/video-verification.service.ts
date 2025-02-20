@@ -146,7 +146,11 @@ export class VideoVerificationService {
   }
 }
 
+// Initialize services
+const storageService = new HybridStorageService();
+const blockchainService = new BlockchainService();
+
 export const videoVerificationService = VideoVerificationService.getInstance(
-  new HybridStorageService(),
-  new BlockchainService()
+  storageService,
+  blockchainService
 );
