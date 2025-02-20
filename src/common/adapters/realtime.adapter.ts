@@ -1,10 +1,9 @@
 import { SupabaseClient, RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
-
 export type RealtimeEventType = 'INSERT' | 'UPDATE' | 'DELETE' | 'BROADCAST';
 export type RealtimePresenceState = { [key: string]: { online_at: string; user_id: string } };
 
 export interface RealtimeAdapter {
-  subscribeToChanges<T = unknown>(
+  subscribeToChanges<T extends Record<string, unknown>>(
     table: string,
     event: RealtimeEventType,
     callback: (payload: RealtimePostgresChangesPayload<T>) => void
@@ -32,7 +31,7 @@ export class SupabaseRealtimeAdapter implements RealtimeAdapter {
     this.channels = new Map();
   }
 
-  async subscribeToChanges<T = unknown>(
+  async subscribeToChanges<T extends Record<string, unknown>>(
     table: string,
     event: RealtimeEventType,
     callback: (payload: RealtimePostgresChangesPayload<T>) => void
@@ -44,14 +43,19 @@ export class SupabaseRealtimeAdapter implements RealtimeAdapter {
 
     const realtimeChannel = this.client
       .channel(channel)
-      .on(
-        'postgres_changes',
-        {
-          event,
-          schema: 'public',
-          table
-        },
-        callback
+      .on('system', { event: 'postgres_changes' }, () => {})
+      .on('broadcast', { event: 'postgres_changes' }, () => {})
+      .on('presence', { event: 'sync' }, () => {})
+      .on('system', {
+        event: event as 'INSERT' | 'UPDATE' | 'DELETE',
+        schema: 'public',
+        table
+      },
+        (payload: RealtimePostgresChangesPayload<T>) => {
+          if (payload.new && typeof payload.new === 'object') {
+            callback(payload);
+          }
+        }
       )
       .subscribe();
 
@@ -70,7 +74,7 @@ export class SupabaseRealtimeAdapter implements RealtimeAdapter {
       .channel(channel)
       .on('presence', { event: 'sync' }, () => {
         const state = realtimeChannel.presenceState();
-        callback(state as RealtimePresenceState);
+        callback(state as unknown as RealtimePresenceState);
       })
       .subscribe();
 
@@ -125,36 +129,39 @@ export class SupabaseRealtimeAdapter implements RealtimeAdapter {
   }
 
   // Helper methods for specific use cases
-  async subscribeToUserUpdates(userId: string, callback: (payload: RealtimePostgresChangesPayload<User>) => void): Promise<void> {
-    await this.subscribeToChanges(
+  async subscribeToUserUpdates(userId: string, callback: (payload: RealtimePostgresChangesPayload<{ id: string }>) => void): Promise<void> {
+    await this.subscribeToChanges<{ id: string }>(
       'user_profiles',
       'UPDATE',
       (payload) => {
-        if (payload.new.id === userId) {
+        const newData = payload.new as { id: string };
+        if (newData && newData.id === userId) {
           callback(payload);
         }
       }
     );
   }
 
-  async subscribeToTransactions(userId: string, callback: (payload: RealtimePostgresChangesPayload<Transaction>) => void): Promise<void> {
-    await this.subscribeToChanges(
+  async subscribeToTransactions(userId: string, callback: (payload: RealtimePostgresChangesPayload<{ fromUserId: string; toUserId: string }>) => void): Promise<void> {
+    await this.subscribeToChanges<{ fromUserId: string; toUserId: string }>(
       'transactions',
       'INSERT',
       (payload) => {
-        if (payload.new.fromUserId === userId || payload.new.toUserId === userId) {
+        const newData = payload.new as { fromUserId: string; toUserId: string };
+        if (newData && (newData.fromUserId === userId || newData.toUserId === userId)) {
           callback(payload);
         }
       }
     );
   }
 
-  async subscribeToDocumentVerification(userId: string, callback: (payload: RealtimePostgresChangesPayload<KYCDocument>) => void): Promise<void> {
-    await this.subscribeToChanges(
+  async subscribeToDocumentVerification(userId: string, callback: (payload: RealtimePostgresChangesPayload<{ userId: string }>) => void): Promise<void> {
+    await this.subscribeToChanges<{ userId: string }>(
       'kyc_documents',
       'UPDATE',
       (payload) => {
-        if (payload.new.userId === userId) {
+        const newData = payload.new as { userId: string };
+        if (newData && newData.userId === userId) {
           callback(payload);
         }
       }

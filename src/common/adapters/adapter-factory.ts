@@ -23,7 +23,8 @@ class AdapterFactory {
 
   getDatabaseAdapter(): DatabaseAdapter {
     if (!this.databaseAdapter) {
-      this.databaseAdapter = new SupabaseAdapter();
+      const adapter = new SupabaseAdapter();
+      this.databaseAdapter = adapter;
     }
     return this.databaseAdapter;
   }

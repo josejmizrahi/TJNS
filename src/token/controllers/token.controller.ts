@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import tokenService from '../services/token.service';
-import { TokenType } from '../../common/types/models';
+import { TokenType } from '../../blockchain/types';
 
 // Validation schemas will be moved to a separate validation module
 

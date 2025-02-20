@@ -1,8 +1,48 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { User, KYCDocument, TokenBalance, Transaction, MitzvahPointsRuleEntity, Escrow } from '../types/models';
+import { User, KYCDocument } from '../types/models';
 import { TokenEntity, TokenType } from '../../blockchain/models/token.model';
+import { TokenBalance, Transaction } from '../../token/models/token.model';
+import { MitzvahPointsRuleEntity, Escrow } from '../types/models';
+import { ListingCategory, ListingStatus } from '../../marketplace/models/listing.model';
+import { StorageType } from '../utils/storage';
+
+export interface Listing {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  sellerId: string;
+  category: ListingCategory;
+  status: ListingStatus;
+  kosherCertification?: {
+    certifier: string;
+    certificateNumber: string;
+    expirationDate: Date;
+  };
+  images?: string[];
+  imageStorageType?: StorageType;
+  shipping?: {
+    weight: number;
+    dimensions: {
+      length: number;
+      width: number;
+      height: number;
+    };
+    methods: string[];
+  };
+  metadata?: Record<string, unknown>;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 export interface DatabaseAdapter {
+  // Listing operations
+  createListing(listing: Partial<Listing>): Promise<Listing>;
+  getListing(id: string): Promise<Listing | null>;
+  updateListing(id: string, data: Partial<Listing>): Promise<Listing>;
+  searchListings(params: Partial<Listing>): Promise<Listing[]>;
+  deleteListing(id: string): Promise<void>;
+
   // User operations
   createUser(user: Partial<User>): Promise<User>;
   getUserById(id: string): Promise<User | null>;
@@ -33,6 +73,42 @@ export class SupabaseAdapter implements DatabaseAdapter {
 
   constructor() {
     this.client = supabase;
+  }
+
+  async query<T = unknown>(sql: string, params?: unknown[]): Promise<T[]> {
+    const { data, error } = await this.client.rpc('execute_sql', { sql, params });
+    if (error) throw error;
+    return data;
+  }
+
+  // Listing operations
+  async createListing(listing: Partial<Listing>): Promise<Listing> {
+    const { data, error } = await this.client.from('listings').insert(listing).single();
+    if (error) throw error;
+    return data;
+  }
+
+  async getListing(id: string): Promise<Listing | null> {
+    const { data, error } = await this.client.from('listings').select('*').eq('id', id).single();
+    if (error) throw error;
+    return data;
+  }
+
+  async updateListing(id: string, data: Partial<Listing>): Promise<Listing> {
+    const { data: updated, error } = await this.client.from('listings').update(data).eq('id', id).single();
+    if (error) throw error;
+    return updated;
+  }
+
+  async searchListings(params: Partial<Listing>): Promise<Listing[]> {
+    const { data, error } = await this.client.from('listings').select('*').match(params);
+    if (error) throw error;
+    return data || [];
+  }
+
+  async deleteListing(id: string): Promise<void> {
+    const { error } = await this.client.from('listings').delete().eq('id', id);
+    if (error) throw error;
   }
 
   // JewishID methods
