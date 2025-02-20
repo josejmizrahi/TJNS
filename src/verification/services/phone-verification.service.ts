@@ -1,26 +1,31 @@
+import { BaseVerificationService } from './base-verification.service';
+import { PhoneVerification } from '@/verification/types/models';
 import { auditLogger, AuditEventType } from '../../common/utils/audit';
+import { HybridStorageService } from '../../common/utils/storage';
+import { BlockchainService } from '../../common/utils/blockchain';
 
-interface PhoneVerificationAttempt {
-  phoneNumber: string;
-  code: string;
-  createdAt: Date;
-  expiresAt: Date;
-  attempts: number;
-}
-
-export class PhoneVerificationService {
+export class PhoneVerificationService extends BaseVerificationService<PhoneVerification> {
   private static instance: PhoneVerificationService;
-  private verificationAttempts: Map<string, PhoneVerificationAttempt>;
   private readonly CODE_EXPIRY = 10 * 60 * 1000; // 10 minutes
   private readonly MAX_ATTEMPTS = 3;
 
-  private constructor() {
-    this.verificationAttempts = new Map();
+  private constructor(
+    storageService: HybridStorageService,
+    blockchainService: BlockchainService
+  ) {
+    super(storageService, blockchainService);
+    // Initialize base class
   }
 
-  static getInstance(): PhoneVerificationService {
+  static getInstance(
+    storageService: HybridStorageService,
+    blockchainService: BlockchainService
+  ): PhoneVerificationService {
     if (!PhoneVerificationService.instance) {
-      PhoneVerificationService.instance = new PhoneVerificationService();
+      PhoneVerificationService.instance = new PhoneVerificationService(
+        storageService,
+        blockchainService
+      );
     }
     return PhoneVerificationService.instance;
   }
@@ -30,12 +35,15 @@ export class PhoneVerificationService {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const now = new Date();
 
-    this.verificationAttempts.set(phoneNumber, {
+    this.verifications.set(phoneNumber, {
+      userId,
+      verificationId: this.generateVerificationId('phone'),
+      status: 'pending',
       phoneNumber,
       code,
+      attempts: 0,
       createdAt: now,
-      expiresAt: new Date(now.getTime() + this.CODE_EXPIRY),
-      attempts: 0
+      expiresAt: new Date(now.getTime() + this.CODE_EXPIRY)
     });
 
     // TODO: Integrate with SMS provider (Twilio/MessageBird)
@@ -53,7 +61,7 @@ export class PhoneVerificationService {
   }
 
   async verifyCode(phoneNumber: string, code: string, userId: string): Promise<boolean> {
-    const attempt = this.verificationAttempts.get(phoneNumber);
+    const attempt = this.verifications.get(phoneNumber);
     
     if (!attempt) {
       throw new Error('No verification attempt found for this phone number');
@@ -88,7 +96,7 @@ export class PhoneVerificationService {
     }
 
     attempt.attempts++;
-    this.verificationAttempts.set(phoneNumber, attempt);
+    this.verifications.set(phoneNumber, attempt);
 
     const isValid = attempt.code === code;
     
@@ -103,11 +111,17 @@ export class PhoneVerificationService {
     });
 
     if (isValid) {
-      this.verificationAttempts.delete(phoneNumber);
+      this.verifications.delete(phoneNumber);
     }
 
     return isValid;
   }
 }
 
-export const phoneVerificationService = PhoneVerificationService.getInstance();
+import storage from '../../common/utils/storage';
+import blockchain from '../../common/utils/blockchain';
+
+export const phoneVerificationService = PhoneVerificationService.getInstance(
+  storage,
+  blockchain
+);

@@ -1,6 +1,6 @@
 import { SupabaseStorageAdapter } from '../adapters/storage.adapter';
 import { IPFSService } from './ipfs';
-import { EncryptionService } from './encryption';
+import { encryptionService, EncryptionService } from './encryption';
 import { AppError } from '../middleware/error';
 import type { StorageAdapter } from '../adapters/storage.adapter';
 
@@ -148,5 +148,5 @@ export default new HybridStorageService(
     process.env.SUPABASE_ANON_KEY!
   ),
   new IPFSService(),
-  new EncryptionService()
+  encryptionService
 );

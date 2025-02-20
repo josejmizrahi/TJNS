@@ -1,30 +1,20 @@
+import { StorageType } from '../../common/utils/storage';
+import { BaseVerificationService } from './base-verification.service';
+import { VideoVerification } from '@/verification/types/models';
 import { auditLogger, AuditEventType } from '../../common/utils/audit';
-import { HybridStorageService, StorageType } from '../../common/utils/storage';
+import { HybridStorageService } from '../../common/utils/storage';
 import { BlockchainService } from '../../common/utils/blockchain';
 
-interface VideoVerificationSession {
-  sessionId: string;
-  userId: string;
-  verifierId: string;
-  scheduledTime: Date;
-  status: 'scheduled' | 'completed' | 'failed' | 'cancelled';
-  recordingHash?: string;
-  notes?: string;
-}
-
-export class VideoVerificationService {
+export class VideoVerificationService extends BaseVerificationService<VideoVerification> {
   private static instance: VideoVerificationService;
-  private sessions: Map<string, VideoVerificationSession>;
-  private storage: HybridStorageService;
-  private blockchain: BlockchainService;
+  // Use base class verifications map
 
   private constructor(
     storageService: HybridStorageService,
     blockchainService: BlockchainService
   ) {
-    this.sessions = new Map();
-    this.storage = storageService;
-    this.blockchain = blockchainService;
+    super(storageService, blockchainService);
+    // Initialize base class
   }
 
   static getInstance(
@@ -47,12 +37,13 @@ export class VideoVerificationService {
   ): Promise<string> {
     const sessionId = `video-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
-    this.sessions.set(sessionId, {
-      sessionId,
+    this.verifications.set(sessionId, {
       userId,
+      verificationId: sessionId,
       verifierId,
       scheduledTime,
-      status: 'scheduled'
+      status: 'pending',
+      createdAt: new Date()
     });
 
     auditLogger.logEvent({
@@ -71,7 +62,7 @@ export class VideoVerificationService {
   }
 
   async startSession(sessionId: string): Promise<void> {
-    const session = this.sessions.get(sessionId);
+    const session = this.verifications.get(sessionId);
     if (!session) {
       throw new Error('Session not found');
     }
@@ -96,7 +87,7 @@ export class VideoVerificationService {
     notes: string,
     verifierId: string
   ): Promise<void> {
-    const session = this.sessions.get(sessionId);
+    const session = this.verifications.get(sessionId);
     if (!session) {
       throw new Error('Session not found');
     }
@@ -119,10 +110,10 @@ export class VideoVerificationService {
     });
 
     // Update session
-    session.status = 'completed';
+    session.status = 'approved';
     session.recordingHash = path;
     session.notes = notes;
-    this.sessions.set(sessionId, session);
+    this.verifications.set(sessionId, session);
 
     auditLogger.logEvent({
       type: AuditEventType.VERIFICATION_ATTEMPT,
@@ -137,8 +128,8 @@ export class VideoVerificationService {
     });
   }
 
-  async getVerificationStatus(sessionId: string): Promise<VideoVerificationSession> {
-    const session = this.sessions.get(sessionId);
+  async getVerificationStatus(sessionId: string): Promise<VideoVerification> {
+    const session = this.verifications.get(sessionId);
     if (!session) {
       throw new Error('Session not found');
     }

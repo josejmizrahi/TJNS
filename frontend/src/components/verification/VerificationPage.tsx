@@ -4,6 +4,8 @@ import * as React from 'react';
 import { VerificationStatus } from './VerificationStatus';
 import { DocumentUpload } from './DocumentUpload';
 import { VideoVerification } from './VideoVerification';
+import { CommunityVerification } from './CommunityVerification';
+import { GovernanceVerification } from './GovernanceVerification';
 import { api } from '../../lib/api';
 // Removed unused import
 
@@ -84,7 +86,6 @@ export function VerificationPage() {
             if (response.status === 'error') {
               throw new Error(response.message);
             }
-            // Return void as expected by the component interface
             return;
           } catch (error) {
             console.error('Video call scheduling failed:', error);
@@ -92,6 +93,40 @@ export function VerificationPage() {
           }
         }}
       />
+
+      {verificationLevel === 'basic' && (
+        <CommunityVerification
+          onSubmit={async (data) => {
+            try {
+              const response = await api.submitCommunityVerification(data);
+              if (response.status === 'error') {
+                throw new Error(response.message);
+              }
+              setVerificationLevel('verified');
+            } catch (error) {
+              console.error('Community verification failed:', error);
+              throw error;
+            }
+          }}
+        />
+      )}
+
+      {verificationLevel === 'verified' && (
+        <GovernanceVerification
+          onSubmit={async (data) => {
+            try {
+              const response = await api.submitGovernanceVerification(data);
+              if (response.status === 'error') {
+                throw new Error(response.message);
+              }
+              setVerificationLevel('complete');
+            } catch (error) {
+              console.error('Governance verification failed:', error);
+              throw error;
+            }
+          }}
+        />
+      )}
     </div>
   );
 }
