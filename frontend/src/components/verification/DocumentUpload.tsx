@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useState } from 'react'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "../../components/ui/card"
+import { Button } from "../../components/ui/button"
 import { Upload, Check, AlertCircle } from "lucide-react"
 import { ClientEncryption } from "@/utils/encryption"
 
