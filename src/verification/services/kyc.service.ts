@@ -1,29 +1,20 @@
+import { StorageType } from '../../common/utils/storage';
+import { BaseVerificationService } from './base-verification.service';
+import { DocumentVerification } from '../types/models';
 import { auditLogger, AuditEventType } from '../../common/utils/audit';
-import { HybridStorageService, StorageType } from '../../common/utils/storage';
+import { HybridStorageService } from '../../common/utils/storage';
 import { BlockchainService } from '../../common/utils/blockchain';
 
-interface KYCVerification {
-  userId: string;
-  status: 'pending' | 'approved' | 'rejected';
-  documentHashes: string[];
-  verificationId?: string;
-  completedAt?: Date;
-  level: 'basic' | 'enhanced';
-}
-
-export class KYCService {
+export class KYCService extends BaseVerificationService<DocumentVerification> {
   private static instance: KYCService;
-  private verifications: Map<string, KYCVerification>;
-  private storage: HybridStorageService;
-  private blockchain: BlockchainService;
+
 
   private constructor(
     storageService: HybridStorageService,
     blockchainService: BlockchainService
   ) {
-    this.verifications = new Map();
-    this.storage = storageService;
-    this.blockchain = blockchainService;
+    super(storageService, blockchainService);
+    // Initialize base class
   }
 
   static getInstance(
@@ -67,9 +58,12 @@ export class KYCService {
 
     this.verifications.set(verificationId, {
       userId,
+      verificationId,
       status: 'pending',
       documentHashes,
-      level
+      documentType: 'kyc',
+      storageType: StorageType.IPFS,
+      createdAt: new Date()
     });
 
     auditLogger.logEvent({
@@ -116,7 +110,7 @@ export class KYCService {
     });
   }
 
-  async getKYCStatus(userId: string): Promise<KYCVerification | undefined> {
+  async getKYCStatus(userId: string): Promise<DocumentVerification | undefined> {
     // Find the latest verification for the user
     return Array.from(this.verifications.values())
       .filter(v => v.userId === userId)

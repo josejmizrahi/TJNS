@@ -148,5 +148,5 @@ export default new HybridStorageService(
     process.env.SUPABASE_ANON_KEY!
   ),
   new IPFSService(),
-  new EncryptionService()
+  EncryptionService.getInstance()
 );
