@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "The Jewish Network State",
   "scripts": {
-    "lint": "eslint ./src --ext .ts"
+    "lint:backend": "eslint ./src --ext .ts",
+    "lint:frontend": "cd frontend && npm install && npm run lint",
+    "lint": "npm run lint:backend && npm run lint:frontend"
   },
   "dependencies": {
     "@types/node": "^20.11.19",

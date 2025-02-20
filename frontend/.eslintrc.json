@@ -1,12 +1,4 @@
 {
-  "root": true,
-  "extends": [
-    "next/core-web-vitals",
-    "plugin:@typescript-eslint/recommended"
-  ],
-  "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint"],
-  "parserOptions": {
-    "project": "./tsconfig.json"
-  }
+  "extends": ["next/core-web-vitals"],
+  "root": true
 }
