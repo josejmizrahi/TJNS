@@ -128,11 +128,11 @@ export class KYCService {
   }
 }
 
-// Initialize services
-const storageService = new HybridStorageService();
-const blockchainService = new BlockchainService();
+// Import default instances
+import storage from '../../common/utils/storage';
+import blockchain from '../../common/utils/blockchain';
 
 export const kycService = KYCService.getInstance(
-  storageService,
-  blockchainService
+  storage,
+  blockchain
 );

@@ -146,11 +146,11 @@ export class VideoVerificationService {
   }
 }
 
-// Initialize services
-const storageService = new HybridStorageService();
-const blockchainService = new BlockchainService();
+// Import default instances
+import storage from '../../common/utils/storage';
+import blockchain from '../../common/utils/blockchain';
 
 export const videoVerificationService = VideoVerificationService.getInstance(
-  storageService,
-  blockchainService
+  storage,
+  blockchain
 );
