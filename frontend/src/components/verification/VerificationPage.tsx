@@ -14,7 +14,7 @@ export function VerificationPage() {
   const [availableSlots, setAvailableSlots] = React.useState<TimeSlot[]>([]);
   const [verificationLevel, setVerificationLevel] = React.useState<VerificationLevel>('none');
 
-  useEffect(() => {
+  React.useEffect(() => {
     const fetchData = async () => {
       try {
         const [slotsResponse, statusResponse] = await Promise.all([
@@ -61,7 +61,8 @@ export function VerificationPage() {
             if (response.status === 'error') {
               throw new Error(response.message);
             }
-            return response;
+            // Return void as expected by the component interface
+            return;
           } catch (error) {
             console.error('Document verification failed:', error);
             throw error;
@@ -77,7 +78,8 @@ export function VerificationPage() {
             if (response.status === 'error') {
               throw new Error(response.message);
             }
-            return response;
+            // Return void as expected by the component interface
+            return;
           } catch (error) {
             console.error('Video call scheduling failed:', error);
             throw error;
