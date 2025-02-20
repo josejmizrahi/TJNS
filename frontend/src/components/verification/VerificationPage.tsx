@@ -5,7 +5,7 @@ import { VerificationStatus } from './VerificationStatus';
 import { DocumentUpload } from './DocumentUpload';
 import { VideoVerification } from './VideoVerification';
 import { api } from '../../lib/api';
-import type { VerificationResponse } from '../../lib/api';
+// Removed unused import
 
 type VerificationLevel = 'none' | 'basic' | 'verified' | 'complete';
 type TimeSlot = { id: string; date: Date; available: boolean };
@@ -23,9 +23,13 @@ export function VerificationPage() {
         ]);
 
         if (slotsResponse.status === 'success') {
-          setAvailableSlots(slotsResponse.data.slots);
+          const slots = slotsResponse.data?.slots ?? [];
+          setAvailableSlots(slots.map(slot => ({
+            ...slot,
+            date: new Date(slot.date)
+          })));
         }
-        if (statusResponse.status === 'success') {
+        if (statusResponse.status === 'success' && statusResponse.data?.level) {
           setVerificationLevel(statusResponse.data.level);
         }
       } catch (error) {
@@ -44,7 +48,9 @@ export function VerificationPage() {
           try {
             const status = await api.getVerificationStatus();
             if (status.status === 'success') {
-              setVerificationLevel(status.data.level);
+              if (status.data?.level) {
+                setVerificationLevel(status.data.level);
+              }
             }
           } catch (error) {
             console.error('Failed to update verification status:', error);
