@@ -19,7 +19,7 @@ export class HybridStorageService {
   constructor(
     private supabaseStorage: StorageAdapter,
     private ipfs: IPFSService,
-    private encryption: EncryptionService
+    private readonly encryption: EncryptionService
   ) {}
 
   async uploadFile(
@@ -32,8 +32,9 @@ export class HybridStorageService {
     try {
       if (type === StorageType.IPFS) {
         if (encrypted) {
-          const { cid, tag } = await this.ipfs.uploadEncrypted(file.toString('base64'));
-          return { path: cid, type: StorageType.IPFS, tag };
+          const { encrypted: encryptedData, key, iv } = await this.encryption.encrypt(file);
+          const { cid } = await this.ipfs.uploadEncrypted(encryptedData.toString('base64'));
+          return { path: cid, type: StorageType.IPFS, tag: `${key.toString('hex')}:${iv.toString('hex')}` };
         } else {
           const cid = await this.ipfs.uploadFile(file);
           return { path: cid, type: StorageType.IPFS };
@@ -57,8 +58,12 @@ export class HybridStorageService {
     try {
       if (type === StorageType.IPFS) {
         if (tag) {
-          const content = await this.ipfs.downloadEncrypted(path, tag);
-          return Buffer.from(content, 'base64');
+          const [keyHex, ivHex] = tag.split(':');
+          const key = Buffer.from(keyHex, 'hex');
+          const iv = Buffer.from(ivHex, 'hex');
+          const encryptedContent = await this.ipfs.downloadEncrypted(path);
+          const encryptedBuffer = Buffer.from(encryptedContent, 'base64');
+          return this.encryption.decrypt(encryptedBuffer, key, iv);
         } else {
           return this.ipfs.downloadFile(path);
         }

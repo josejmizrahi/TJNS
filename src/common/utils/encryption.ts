@@ -1,88 +1,41 @@
-import crypto from 'crypto';
-import { securityConfig } from '../config/security';
+import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
+import { storageConfig } from '../config/storage';
 
 export class EncryptionService {
-  private readonly key: Buffer;
-  private readonly iv: Buffer;
+  private readonly algorithm: string;
+  private readonly keyLength: number;
 
   constructor() {
-    if (!process.env.ENCRYPTION_KEY || !process.env.ENCRYPTION_IV) {
-      throw new Error('Encryption key and IV must be set');
-    }
-
-    this.key = Buffer.from(process.env.ENCRYPTION_KEY, 'hex');
-    this.iv = Buffer.from(process.env.ENCRYPTION_IV, 'hex');
+    this.algorithm = storageConfig.encryption.algorithm;
+    this.keyLength = storageConfig.encryption.keyLength;
   }
 
-  generateTag(): string {
-    return crypto.randomBytes(16).toString('hex');
-  }
-
-  encrypt(data: string): { encryptedData: string; tag: string } {
-    const cipher = crypto.createCipheriv(
-      securityConfig.encryption.algorithm,
-      this.key,
-      this.iv
-    ) as crypto.CipherGCM;
-
-    let encryptedData = cipher.update(data, 'utf8', 'hex');
-    encryptedData += cipher.final('hex');
+  async encrypt(data: Buffer): Promise<{ encrypted: Buffer; key: Buffer; iv: Buffer }> {
+    const key = randomBytes(this.keyLength);
+    const iv = randomBytes(16);
+    const cipher = createCipheriv(this.algorithm, key, iv);
     
-    return {
-      encryptedData,
-      tag: cipher.getAuthTag().toString('hex'),
-    };
+    const encrypted = Buffer.concat([
+      cipher.update(data),
+      cipher.final()
+    ]);
+
+    return { encrypted, key, iv };
   }
 
-  decrypt(encryptedData: string, tag: string): string {
-    const decipher = crypto.createDecipheriv(
-      securityConfig.encryption.algorithm,
-      this.key,
-      this.iv
-    ) as crypto.DecipherGCM;
-
-    decipher.setAuthTag(Buffer.from(tag, 'hex'));
-
-    let decryptedData = decipher.update(encryptedData, 'hex', 'utf8');
-    decryptedData += decipher.final('utf8');
+  async decrypt(encrypted: Buffer, key: Buffer, iv: Buffer): Promise<Buffer> {
+    const decipher = createDecipheriv(this.algorithm, key, iv);
     
-    return decryptedData;
+    return Buffer.concat([
+      decipher.update(encrypted),
+      decipher.final()
+    ]);
   }
 
-  static hashPassword(password: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const salt = crypto.randomBytes(16).toString('hex');
-      
-      crypto.pbkdf2(
-        password,
-        salt,
-        securityConfig.encryption.iterations,
-        64,
-        securityConfig.encryption.digest,
-        (err, derivedKey) => {
-          if (err) reject(err);
-          resolve(salt + ':' + derivedKey.toString('hex'));
-        }
-      );
-    });
-  }
-
-  static verifyPassword(password: string, hash: string): Promise<boolean> {
-    return new Promise((resolve, reject) => {
-      const [salt, key] = hash.split(':');
-      
-      crypto.pbkdf2(
-        password,
-        salt,
-        securityConfig.encryption.iterations,
-        64,
-        securityConfig.encryption.digest,
-        (err, derivedKey) => {
-          if (err) reject(err);
-          resolve(key === derivedKey.toString('hex'));
-        }
-      );
-    });
+  // Key rotation methods
+  async rotateKey(data: Buffer, oldKey: Buffer, oldIv: Buffer): Promise<{ encrypted: Buffer; key: Buffer; iv: Buffer }> {
+    const decrypted = await this.decrypt(data, oldKey, oldIv);
+    return this.encrypt(decrypted);
   }
 }
 
