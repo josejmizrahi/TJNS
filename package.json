@@ -5,7 +5,9 @@
   "scripts": {
     "lint:backend": "eslint ./src --ext .ts",
     "lint:frontend": "cd frontend && npm install && npm run lint",
-    "lint": "npm run lint:backend && npm run lint:frontend"
+    "lint": "npm run lint:backend && npm run lint:frontend",
+    "build": "tsc",
+    "start": "node dist/index.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.48.1",
