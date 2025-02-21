@@ -10,12 +10,13 @@ import { VideoVerification } from './VideoVerification';
 import { CommunityVerification } from './CommunityVerification';
 import { GovernanceVerification } from './GovernanceVerification';
 import { Alert, AlertDescription } from '../ui/alert';
-
-interface TimeSlot {
-  id: string;
-  date: Date;
-  available: boolean;
-}
+import { VerificationLevel } from '../../common/enums/user';
+import { 
+  DocumentUploadData,
+  CommunityVerificationData,
+  GovernanceVerificationData,
+  VideoVerificationData
+} from '../../types/verification';
 
 export function VerificationPage() {
   // Fetch verification status and Jewish ID data
@@ -27,13 +28,13 @@ export function VerificationPage() {
   const videoVerification = useVideoVerification();
   const phoneVerification = usePhoneVerification();
 
-  const handleDocumentUpload = async (file: File, type: string) => {
+  const handleDocumentUpload = async (data: DocumentUploadData) => {
     try {
       await documentUpload.mutateAsync({
-        type,
-        file,
+        ...data,
         metadata: {
-          userId: jewishId?.userId,
+          ...data.metadata,
+          userId: jewishId?.id,
           verificationLevel: verificationStatus?.level
         }
       });
@@ -43,9 +44,15 @@ export function VerificationPage() {
     }
   };
 
-  const handleVideoVerification = async (videoBlob: Blob) => {
+  const handleVideoVerification = async (data: VideoVerificationData) => {
     try {
-      await videoVerification.mutateAsync(videoBlob);
+      await videoVerification.mutateAsync({
+        ...data,
+        metadata: {
+          userId: jewishId?.id,
+          verificationLevel: verificationStatus?.level
+        }
+      });
     } catch (error) {
       console.error('Video verification failed:', error);
       throw error;
@@ -71,86 +78,90 @@ export function VerificationPage() {
     );
   }
 
+  const currentLevel = verificationStatus?.level || VerificationLevel.NONE;
+
   return (
     <div className="space-y-8">
-      <VerificationStepper currentLevel={verificationStatus?.level || 'none'} />
+      <VerificationStepper currentLevel={currentLevel} />
       <div className="grid gap-8 md:grid-cols-2">
         <VerificationStatus 
-          level={verificationStatus?.level || 'none'}
+          level={currentLevel}
           documents={verificationStatus?.documents || []}
+          onStartVerification={handlePhoneVerification}
         />
 
         {/* Basic Level Requirements */}
-        {(!verificationStatus?.level || verificationStatus.level === 'none') && (
+        {(currentLevel === VerificationLevel.NONE) && (
           <>
             <DocumentUpload
               documentType="government_id"
               description="Upload a government-issued ID for verification"
-              onUpload={handleDocumentUpload}
+              onUpload={(file) => handleDocumentUpload({ type: 'government_id', file })}
               isLoading={documentUpload.isPending}
             />
             <DocumentUpload
               documentType="proof_of_residence"
               description="Upload proof of residence"
-              onUpload={handleDocumentUpload}
+              onUpload={(file) => handleDocumentUpload({ type: 'proof_of_residence', file })}
               isLoading={documentUpload.isPending}
             />
           </>
         )}
 
         {/* Community Level Requirements */}
-        {verificationStatus?.level === 'basic' && (
+        {currentLevel === VerificationLevel.BASIC && (
           <>
             <CommunityVerification
-              onSubmit={async (data) => {
-                await handleDocumentUpload(
-                  data.referenceDocument,
-                  'community_reference'
-                );
+              onSubmit={async (data: CommunityVerificationData) => {
+                for (const doc of data.documents) {
+                  await handleDocumentUpload({
+                    type: 'community_reference',
+                    file: doc,
+                    metadata: { communityData: data }
+                  });
+                }
               }}
               isLoading={documentUpload.isPending}
             />
             <DocumentUpload
               documentType="synagogue_membership"
               description="Upload synagogue membership verification"
-              onUpload={handleDocumentUpload}
+              onUpload={(file) => handleDocumentUpload({ type: 'synagogue_membership', file })}
               isLoading={documentUpload.isPending}
             />
           </>
         )}
 
         {/* Financial Level Requirements */}
-        {verificationStatus?.level === 'community' && (
+        {currentLevel === VerificationLevel.COMMUNITY && (
           <>
             <VideoVerification
-              onSubmit={handleVideoVerification}
+              onSubmit={(recording: Blob) => handleVideoVerification({ recording })}
               isLoading={videoVerification.isPending}
             />
             <DocumentUpload
               documentType="kyc_aml"
               description="Upload KYC/AML verification documents"
-              onUpload={handleDocumentUpload}
+              onUpload={(file) => handleDocumentUpload({ type: 'kyc_aml', file })}
               isLoading={documentUpload.isPending}
             />
           </>
         )}
 
         {/* Governance Level Requirements */}
-        {verificationStatus?.level === 'financial' && (
+        {currentLevel === VerificationLevel.FINANCIAL && (
           <>
             <GovernanceVerification
-              onSubmit={async (data) => {
-                await handleDocumentUpload(
-                  data.multiPartyDocument,
-                  'multi_party_verification'
-                );
+              onSubmit={async (data: GovernanceVerificationData) => {
+                await handleDocumentUpload({
+                  type: 'multi_party_verification',
+                  file: data.multiPartyDocument
+                });
+                await handleDocumentUpload({
+                  type: 'historical_validation',
+                  file: data.historicalDocument
+                });
               }}
-              isLoading={documentUpload.isPending}
-            />
-            <DocumentUpload
-              documentType="historical_validation"
-              description="Upload historical validation documents"
-              onUpload={handleDocumentUpload}
               isLoading={documentUpload.isPending}
             />
           </>
