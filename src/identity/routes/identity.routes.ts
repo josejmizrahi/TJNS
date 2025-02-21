@@ -1,5 +1,10 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { Express } from 'express-serve-static-core';
+import { Express, Request as ExpressRequest } from 'express-serve-static-core';
+
+interface RequestWithFiles extends ExpressRequest {
+  file?: Express.Multer.File;
+  files?: Express.Multer.File[];
+}
 import { authenticate, authorize } from '../../common/middleware/auth';
 import { requireMFA } from '../../common/middleware';
 import identityController from '../controllers/identity.controller';
@@ -9,14 +14,37 @@ import { MFAService } from '../../common/utils/mfa';
 import { UserRole } from '../../common/enums/user';
 import { SupabaseAdapter } from '../../common/adapters/supabase.adapter';
 import { AppError } from '../../common/middleware/error';
+import { auditLogger, AuditEventType } from '../../common/utils/audit';
+import { verificationRateLimit, documentRateLimit, mfaRateLimit } from '../middleware/rate-limits';
 import multer from 'multer';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Public routes
-router.post('/register', identityController.register);
-router.post('/verify-email/:token', identityController.verifyEmail);
+router.post('/register', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await identityController.register(req, res, next);
+    auditLogger.logEvent({
+      type: AuditEventType.VERIFICATION_ATTEMPT,
+      userId: req.body.userId,
+      action: 'register',
+      status: 'success'
+    });
+  } catch (error) {
+    auditLogger.logEvent({
+      type: AuditEventType.VERIFICATION_ATTEMPT,
+      userId: req.body.userId,
+      action: 'register',
+      status: 'failure',
+      metadata: {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }
+    });
+    next(error);
+  }
+});
+router.post('/verify-email/:token', verificationRateLimit, identityController.verifyEmail);
 
 // Protected routes
 router.use(authenticate);
@@ -26,25 +54,71 @@ router.post(
   '/documents',
   upload.single('file'),
   requireMFA,
-  identityController.uploadDocument
+  documentRateLimit,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await identityController.uploadDocument(req, res, next);
+      auditLogger.logEvent({
+        type: AuditEventType.DOCUMENT_ACCESS,
+        userId: req.user!.id,
+        action: 'upload_document',
+        status: 'success',
+        metadata: {
+          documentType: req.body.documentType
+        }
+      });
+    } catch (error) {
+      auditLogger.logEvent({
+        type: AuditEventType.DOCUMENT_ACCESS,
+        userId: req.user!.id,
+        action: 'upload_document',
+        status: 'failure',
+        metadata: {
+          error: error instanceof Error ? error.message : 'Unknown error'
+        }
+      });
+      next(error);
+    }
+  }
 );
 
-router.post('/wallet', requireMFA, identityController.createWallet);
+router.post('/wallet', requireMFA, verificationRateLimit, identityController.createWallet);
 
 // Jewish Identity routes
 router.post(
   '/jewish-identity/:id/documents',
   requireMFA,
+  documentRateLimit,
   upload.single('file'),
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: RequestWithFiles, res: Response, next: NextFunction) => {
     try {
       await jewishIdentityService.uploadVerificationDocument(
         req.params.id,
         req.body.documentType,
         req.file!.buffer
       );
+      auditLogger.logEvent({
+        type: AuditEventType.DOCUMENT_ACCESS,
+        userId: req.user!.id,
+        action: 'upload_verification_document',
+        status: 'success',
+        metadata: {
+          identityId: req.params.id,
+          documentType: req.body.documentType
+        }
+      });
       res.status(200).json({ success: true });
     } catch (error) {
+      auditLogger.logEvent({
+        type: AuditEventType.DOCUMENT_ACCESS,
+        userId: req.user!.id,
+        action: 'upload_verification_document',
+        status: 'failure',
+        metadata: {
+          identityId: req.params.id,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        }
+      });
       next(error);
     }
   }
@@ -53,27 +127,50 @@ router.post(
 router.post(
   '/jewish-identity/:id/family',
   requireMFA,
+  documentRateLimit,
   upload.array('documents'),
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: RequestWithFiles, res: Response, next: NextFunction) => {
     try {
       await jewishIdentityService.addFamilyMember(
         req.params.id,
         req.body.relation,
         req.body.memberId,
-        Array.isArray(req.files) ? req.files.map((f: Express.Multer.File) => ({
+        Array.isArray(req.files) ? req.files.map((f) => ({
           type: f.fieldname,
           file: f.buffer
         })) : []
       );
+      auditLogger.logEvent({
+        type: AuditEventType.DOCUMENT_ACCESS,
+        userId: req.user!.id,
+        action: 'add_family_member',
+        status: 'success',
+        metadata: {
+          identityId: req.params.id,
+          relation: req.body.relation,
+          memberId: req.body.memberId,
+          documentCount: req.files?.length || 0
+        }
+      });
       res.status(200).json({ success: true });
     } catch (error) {
+      auditLogger.logEvent({
+        type: AuditEventType.DOCUMENT_ACCESS,
+        userId: req.user!.id,
+        action: 'add_family_member',
+        status: 'failure',
+        metadata: {
+          identityId: req.params.id,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        }
+      });
       next(error);
     }
   }
 );
 
 // MFA routes
-router.post('/mfa/verify', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/mfa/verify', mfaRateLimit, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { token, type } = req.body;
     const userId = req.user?.id;
