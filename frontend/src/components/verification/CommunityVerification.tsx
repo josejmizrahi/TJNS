@@ -3,6 +3,9 @@
 import * as React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
+import { LoadingSpinner } from '../ui/loading-spinner';
+import { ErrorAlert } from '../ui/error-alert';
+import { Users } from 'lucide-react';
 
 interface CommunityVerificationProps {
   onSubmit: (data: {
@@ -15,6 +18,8 @@ interface CommunityVerificationProps {
 }
 
 export function CommunityVerification({ onSubmit }: CommunityVerificationProps) {
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [error, setError] = React.useState<string>();
   const [formData, setFormData] = React.useState({
     synagogueName: '',
     rabbiName: '',
@@ -25,17 +30,26 @@ export function CommunityVerification({ onSubmit }: CommunityVerificationProps) 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setError(undefined);
+    
     try {
       await onSubmit(formData);
     } catch (error) {
       console.error('Community verification failed:', error);
+      setError(error instanceof Error ? error.message : 'Failed to submit community verification');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Community Verification</CardTitle>
+        <div className="flex items-center gap-2">
+          <Users className="text-blue-500" />
+          <CardTitle>Community Verification</CardTitle>
+        </div>
         <CardDescription>Verify your community membership and Jewish identity</CardDescription>
       </CardHeader>
       <CardContent>
@@ -89,7 +103,16 @@ export function CommunityVerification({ onSubmit }: CommunityVerificationProps) 
               className="w-full p-2 border rounded"
             />
           </div>
-          <Button type="submit">Submit Verification</Button>
+          {error && <ErrorAlert message={error} />}
+          
+          {isSubmitting ? (
+            <div className="flex flex-col items-center gap-2">
+              <LoadingSpinner />
+              <span className="text-sm text-muted-foreground">Submitting verification...</span>
+            </div>
+          ) : (
+            <Button type="submit" disabled={isSubmitting}>Submit Verification</Button>
+          )}
         </form>
       </CardContent>
     </Card>
