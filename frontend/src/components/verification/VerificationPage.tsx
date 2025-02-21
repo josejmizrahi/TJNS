@@ -19,8 +19,6 @@ import {
   GovernanceVerificationProps,
   VerificationDocument
 } from './types';
-  VideoVerificationData
-} from '../../types/verification';
 
 export function VerificationPage() {
   // Fetch verification status and Jewish ID data
@@ -32,11 +30,11 @@ export function VerificationPage() {
   const videoVerification = useVideoVerification();
   const phoneVerification = usePhoneVerification();
 
-  const handleDocumentUpload = async (data: { type: string; file: File }) => {
+  const handleDocumentUpload = async (data: { type: string; file: { encrypted: string; key: string } }) => {
     try {
       await documentUpload.mutateAsync({
         type: data.type,
-        file: data.file,
+        encryptedData: data.file,
         metadata: {
           userId: jewishId?.userId,
           verificationLevel: verificationStatus?.level
@@ -85,7 +83,7 @@ export function VerificationPage() {
         <VerificationStatus 
           level={currentLevel}
           documents={verificationStatus?.documents || []}
-          onStartVerification={handlePhoneVerification}
+          onStartVerification={() => {}}
         />
 
         {/* Basic Level Requirements */}

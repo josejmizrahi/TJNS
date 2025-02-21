@@ -21,7 +21,7 @@ export interface VerificationStatusProps {
 export interface DocumentUploadProps {
   documentType: string;
   description: string;
-  onUpload: (file: File) => Promise<void>;
+  onUpload: (file: { encrypted: string; key: string }) => Promise<void>;
   isLoading: boolean;
 }
 
