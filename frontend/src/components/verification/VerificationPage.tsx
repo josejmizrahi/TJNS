@@ -1,135 +1,170 @@
 'use client';
 
 import * as React from 'react';
+import { useVerificationStatus, useDocumentUpload, useVideoVerification, usePhoneVerification } from '../../hooks/verification';
+import { useJewishID } from '../../hooks/jewish-id';
 import { VerificationStatus } from './VerificationStatus';
 import { VerificationStepper } from './VerificationStepper';
 import { DocumentUpload } from './DocumentUpload';
 import { VideoVerification } from './VideoVerification';
 import { CommunityVerification } from './CommunityVerification';
 import { GovernanceVerification } from './GovernanceVerification';
-import { api } from '../../lib/api';
-// Removed unused import
+import { Alert, AlertDescription } from '../ui/alert';
 
-import { VerificationLevel } from './VerificationStepper';
-type TimeSlot = { id: string; date: Date; available: boolean };
+interface TimeSlot {
+  id: string;
+  date: Date;
+  available: boolean;
+}
 
 export function VerificationPage() {
-  const [availableSlots, setAvailableSlots] = React.useState<TimeSlot[]>([]);
-  const [verificationLevel, setVerificationLevel] = React.useState<VerificationLevel>('none');
+  // Fetch verification status and Jewish ID data
+  const { data: verificationStatus, error: statusError } = useVerificationStatus();
+  const { data: jewishId } = useJewishID();
+  
+  // Document upload mutations
+  const documentUpload = useDocumentUpload();
+  const videoVerification = useVideoVerification();
+  const phoneVerification = usePhoneVerification();
 
-  React.useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [slotsResponse, statusResponse] = await Promise.all([
-          api.getAvailableSlots(),
-          api.getVerificationStatus()
-        ]);
-
-        if (slotsResponse.status === 'success') {
-          const slots = slotsResponse.data?.slots ?? [];
-          setAvailableSlots(slots.map(slot => ({
-            ...slot,
-            date: new Date(slot.date)
-          })));
+  const handleDocumentUpload = async (file: File, type: string) => {
+    try {
+      await documentUpload.mutateAsync({
+        type,
+        file,
+        metadata: {
+          userId: jewishId?.userId,
+          verificationLevel: verificationStatus?.level
         }
-        if (statusResponse.status === 'success' && statusResponse.data?.level) {
-          setVerificationLevel(statusResponse.data.level);
-        }
-      } catch (error) {
-        console.error('Failed to fetch initial data:', error);
-      }
-    };
+      });
+    } catch (error) {
+      console.error('Document upload failed:', error);
+      throw error;
+    }
+  };
 
-    fetchData();
-  }, []);
+  const handleVideoVerification = async (videoBlob: Blob) => {
+    try {
+      await videoVerification.mutateAsync(videoBlob);
+    } catch (error) {
+      console.error('Video verification failed:', error);
+      throw error;
+    }
+  };
+
+  const handlePhoneVerification = async (phoneNumber: string, code: string) => {
+    try {
+      await phoneVerification.mutateAsync({ phoneNumber, code });
+    } catch (error) {
+      console.error('Phone verification failed:', error);
+      throw error;
+    }
+  };
+
+  if (statusError) {
+    return (
+      <Alert variant="destructive">
+        <AlertDescription>
+          Failed to load verification status. Please try again later.
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <div className="space-y-8">
-      <VerificationStepper currentLevel={verificationLevel} />
+      <VerificationStepper currentLevel={verificationStatus?.level || 'none'} />
       <div className="grid gap-8 md:grid-cols-2">
-      <VerificationStatus 
-        level={verificationLevel}
-        onStartVerification={async () => {
-          try {
-            const status = await api.getVerificationStatus();
-            if (status.status === 'success') {
-              if (status.data?.level) {
-                setVerificationLevel(status.data.level);
-              }
-            }
-          } catch (error) {
-            console.error('Failed to update verification status:', error);
-          }
-        }}
-      />
-
-      <DocumentUpload
-        documentType="Identity Document"
-        description="Upload a government-issued ID for verification"
-        onUpload={async (data) => {
-          try {
-            const response = await api.verifyDocument(data);
-            if (response.status === 'error') {
-              throw new Error(response.message);
-            }
-            // Return void as expected by the component interface
-            return;
-          } catch (error) {
-            console.error('Document verification failed:', error);
-            throw error;
-          }
-        }}
-      />
-
-      <VideoVerification
-        availableSlots={availableSlots}
-        onSchedule={async (slotId) => {
-          try {
-            const response = await api.scheduleVideoCall(slotId);
-            if (response.status === 'error') {
-              throw new Error(response.message);
-            }
-            return;
-          } catch (error) {
-            console.error('Video call scheduling failed:', error);
-            throw error;
-          }
-        }}
-      />
-
-      {verificationLevel === 'basic' && (
-        <CommunityVerification
-          onSubmit={async (data) => {
-            try {
-              const response = await api.submitCommunityVerification(data);
-              if (response.status === 'error') {
-                throw new Error(response.message);
-              }
-              setVerificationLevel('community');
-            } catch (error) {
-              console.error('Community verification failed:', error);
-              throw error;
-            }
-          }}
+        <VerificationStatus 
+          level={verificationStatus?.level || 'none'}
+          documents={verificationStatus?.documents || []}
         />
-      )}
 
-      {verificationLevel === 'community' && (
-        <GovernanceVerification
-          onSubmit={async (data) => {
-            try {
-              const response = await api.submitGovernanceVerification(data);
-              if (response.status === 'error') {
-                throw new Error(response.message);
-              }
-              setVerificationLevel('governance');
-            } catch (error) {
-              console.error('Governance verification failed:', error);
-              throw error;
-            }
-          }}
-        />
-      )}
+        {/* Basic Level Requirements */}
+        {(!verificationStatus?.level || verificationStatus.level === 'none') && (
+          <>
+            <DocumentUpload
+              documentType="government_id"
+              description="Upload a government-issued ID for verification"
+              onUpload={handleDocumentUpload}
+              isLoading={documentUpload.isPending}
+            />
+            <DocumentUpload
+              documentType="proof_of_residence"
+              description="Upload proof of residence"
+              onUpload={handleDocumentUpload}
+              isLoading={documentUpload.isPending}
+            />
+          </>
+        )}
+
+        {/* Community Level Requirements */}
+        {verificationStatus?.level === 'basic' && (
+          <>
+            <CommunityVerification
+              onSubmit={async (data) => {
+                await handleDocumentUpload(
+                  data.referenceDocument,
+                  'community_reference'
+                );
+              }}
+              isLoading={documentUpload.isPending}
+            />
+            <DocumentUpload
+              documentType="synagogue_membership"
+              description="Upload synagogue membership verification"
+              onUpload={handleDocumentUpload}
+              isLoading={documentUpload.isPending}
+            />
+          </>
+        )}
+
+        {/* Financial Level Requirements */}
+        {verificationStatus?.level === 'community' && (
+          <>
+            <VideoVerification
+              onSubmit={handleVideoVerification}
+              isLoading={videoVerification.isPending}
+            />
+            <DocumentUpload
+              documentType="kyc_aml"
+              description="Upload KYC/AML verification documents"
+              onUpload={handleDocumentUpload}
+              isLoading={documentUpload.isPending}
+            />
+          </>
+        )}
+
+        {/* Governance Level Requirements */}
+        {verificationStatus?.level === 'financial' && (
+          <>
+            <GovernanceVerification
+              onSubmit={async (data) => {
+                await handleDocumentUpload(
+                  data.multiPartyDocument,
+                  'multi_party_verification'
+                );
+              }}
+              isLoading={documentUpload.isPending}
+            />
+            <DocumentUpload
+              documentType="historical_validation"
+              description="Upload historical validation documents"
+              onUpload={handleDocumentUpload}
+              isLoading={documentUpload.isPending}
+            />
+          </>
+        )}
+
+        {documentUpload.error && (
+          <Alert variant="destructive">
+            <AlertDescription>
+              {documentUpload.error instanceof Error 
+                ? documentUpload.error.message 
+                : 'Document upload failed'}
+            </AlertDescription>
+          </Alert>
+        )}
       </div>
     </div>
   );
