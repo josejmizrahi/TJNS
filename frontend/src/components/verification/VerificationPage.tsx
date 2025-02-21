@@ -56,7 +56,7 @@ export function VerificationPage() {
   if (error) return <ErrorAlert message={error} />;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 p-4 sm:p-8 lg:p-16 xl:p-20">
       <VerificationStepper currentLevel={verificationLevel} />
       <div className="grid gap-8 md:grid-cols-2">
       <VerificationStatus 
