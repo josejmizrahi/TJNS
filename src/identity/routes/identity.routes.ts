@@ -12,13 +12,33 @@ import { auditLogger, AuditEventType } from '../../common/utils/audit';
 import { verificationRateLimit, documentRateLimit, mfaRateLimit } from './rate-limits';
 import multer from 'multer';
 
+// Extend Express.Request with Multer types
 interface RequestWithFiles extends Request {
-  file?: any; // Multer adds this
-  files?: any[]; // Multer adds this
+  file?: Express.Multer.File;
+  files?: Express.Multer.File[];
   user?: {
     id: string;
     [key: string]: unknown;
   };
+}
+
+// Declare Multer namespace to fix type errors
+declare global {
+  namespace Express {
+    namespace Multer {
+      interface File {
+        fieldname: string;
+        originalname: string;
+        encoding: string;
+        mimetype: string;
+        size: number;
+        destination: string;
+        filename: string;
+        path: string;
+        buffer: Buffer;
+      }
+    }
+  }
 }
 
 const router = Router();
