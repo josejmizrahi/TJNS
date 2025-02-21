@@ -1,0 +1,19 @@
+{
+  "name": "tjns-backend",
+  "version": "1.0.0",
+  "main": "server.js",
+  "dependencies": {
+    "@simplewebauthn/server": "^13.1.1",
+    "@supabase/supabase-js": "^2.48.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "helmet": "^7.2.0",
+    "qrcode": "^1.5.4",
+    "speakeasy": "^2.0.0"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "build": "echo 'No build step required'"
+  }
+}
