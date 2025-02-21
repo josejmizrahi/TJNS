@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { Request as ExpressRequest } from 'express-serve-static-core';
+import { ParamsDictionary } from 'express-serve-static-core';
 import { authenticate, authorize } from '../../common/middleware/auth';
 import { requireMFA } from '../../common/middleware';
 import identityController from '../controllers/identity.controller';
@@ -14,9 +14,10 @@ import { verificationRateLimit, documentRateLimit, mfaRateLimit } from './rate-l
 import multer from 'multer';
 
 // Define request type with files
-interface RequestWithFiles extends ExpressRequest {
-  file?: any; // Multer adds this
-  files?: any[]; // Multer adds this
+interface RequestWithFiles extends Request {
+  params: ParamsDictionary;
+  file?: Express.Multer.File;
+  files?: Express.Multer.File[];
   user?: {
     id: string;
     [key: string]: unknown;
@@ -49,7 +50,28 @@ router.post('/register', async (req: Request, res: Response, next: NextFunction)
     next(error);
   }
 });
-router.post('/verify-email/:token', verificationRateLimit, identityController.verifyEmail);
+router.post('/verify-email/:token', verificationRateLimit, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await identityController.verifyEmail(req, res, next);
+    auditLogger.logEvent({
+      type: AuditEventType.VERIFICATION_ATTEMPT,
+      userId: req.user?.id || '',
+      action: 'verify_email',
+      status: 'success'
+    });
+  } catch (error) {
+    auditLogger.logEvent({
+      type: AuditEventType.VERIFICATION_ATTEMPT,
+      userId: req.user?.id || '',
+      action: 'verify_email',
+      status: 'failure',
+      metadata: {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }
+    });
+    next(error);
+  }
+});
 
 // Protected routes
 router.use(authenticate);
