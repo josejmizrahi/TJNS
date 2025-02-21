@@ -132,15 +132,19 @@ export class BlockchainService {
     currency: TokenType
   ): Promise<string> {
     const balances = await this.client.getBalances(address);
-    interface XRPLBalance {
+    type XRPLBalance = {
       currency: string;
       issuer: string;
       value: string;
-    }
-    const balance = balances.find(
-      (b: XRPLBalance): boolean => 
-        b.currency === currency && 
-        b.issuer === blockchainConfig.coldWallet
+    };
+    
+    const balance = balances.find((b: any): b is XRPLBalance => 
+      b && typeof b === 'object' &&
+      typeof b.currency === 'string' &&
+      typeof b.issuer === 'string' &&
+      typeof b.value === 'string' &&
+      b.currency === currency &&
+      b.issuer === blockchainConfig.coldWallet
     );
 
     const xrplBalance = balance ? balance.value : '0';

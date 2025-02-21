@@ -1,15 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from './error';
 
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        id: string;
-        [key: string]: unknown;
-      };
-    }
-  }
+// Extend Express Request type
+interface RequestWithUser extends Request {
+  user?: {
+    id: string;
+    [key: string]: unknown;
+  };
 }
 
 export const requireMFA = async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
