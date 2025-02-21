@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { VerificationStatus } from './VerificationStatus';
+import { VerificationStepper } from './VerificationStepper';
 import { DocumentUpload } from './DocumentUpload';
 import { VideoVerification } from './VideoVerification';
 import { CommunityVerification } from './CommunityVerification';
@@ -43,7 +44,9 @@ export function VerificationPage() {
   }, []);
 
   return (
-    <div className="grid gap-8 md:grid-cols-2">
+    <div className="space-y-8">
+      <VerificationStepper currentLevel={verificationLevel} />
+      <div className="grid gap-8 md:grid-cols-2">
       <VerificationStatus 
         level={verificationLevel}
         onStartVerification={async () => {
@@ -127,6 +130,7 @@ export function VerificationPage() {
           }}
         />
       )}
+      </div>
     </div>
   );
 }
