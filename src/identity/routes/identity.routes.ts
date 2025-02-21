@@ -1,10 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { Express, Request as ExpressRequest } from 'express-serve-static-core';
-
-interface RequestWithFiles extends ExpressRequest {
-  file?: Express.Multer.File;
-  files?: Express.Multer.File[];
-}
 import { authenticate, authorize } from '../../common/middleware/auth';
 import { requireMFA } from '../../common/middleware';
 import identityController from '../controllers/identity.controller';
@@ -15,8 +10,17 @@ import { UserRole } from '../../common/enums/user';
 import { SupabaseAdapter } from '../../common/adapters/supabase.adapter';
 import { AppError } from '../../common/middleware/error';
 import { auditLogger, AuditEventType } from '../../common/utils/audit';
-import { verificationRateLimit, documentRateLimit, mfaRateLimit } from '../middleware/rate-limits';
+import { verificationRateLimit, documentRateLimit, mfaRateLimit } from './rate-limits';
 import multer from 'multer';
+
+interface RequestWithFiles extends ExpressRequest {
+  file?: Express.Multer.File;
+  files?: Express.Multer.File[];
+  user?: {
+    id: string;
+    [key: string]: unknown;
+  };
+}
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
