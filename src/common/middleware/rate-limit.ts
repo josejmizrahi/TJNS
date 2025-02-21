@@ -5,8 +5,8 @@ const rateLimits = new Map<string, { count: number; resetTime: number }>();
 const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 const MAX_REQUESTS = 100;
 
-export const rateLimit = (req: Request, res: Response, _next: NextFunction) => {
-  const ip = req.ip;
+export const rateLimit = (req: Request, _res: Response, _next: NextFunction): void => {
+  const ip = req.ip || req.connection.remoteAddress || 'unknown';
   const now = Date.now();
   const limit = rateLimits.get(ip);
 
@@ -25,7 +25,7 @@ export const rateLimit = (req: Request, res: Response, _next: NextFunction) => {
   }
 
   if (limit.count >= MAX_REQUESTS) {
-    throw new AppError('Too many requests', 429);
+    throw new AppError(429, 'Too many requests');
   }
 
   limit.count++;
