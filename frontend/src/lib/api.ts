@@ -4,6 +4,19 @@ if (!API_BASE_URL.startsWith('https://')) {
   throw new Error('API must be served over HTTPS');
 }
 
+interface AuthResponse {
+  status: 'success' | 'error';
+  message: string;
+  data?: {
+    token?: string;
+    user?: {
+      id: string;
+      email: string;
+      verificationLevel: string;
+    };
+  };
+}
+
 interface VerificationData {
   slots?: Array<{ id: string; date: string; available: boolean }>;
   level?: 'none' | 'basic' | 'verified' | 'complete';
@@ -36,6 +49,42 @@ interface GovernanceVerificationData {
 }
 
 export const api = {
+  async signIn(email: string, password: string): Promise<AuthResponse> {
+    const response = await fetch(`${API_BASE_URL}/api/v1/auth/signin`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'DENY',
+        'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+      },
+      body: JSON.stringify({ email, password }),
+      credentials: 'include',
+    });
+    return response.json();
+  },
+
+  async signUp(email: string, password: string): Promise<AuthResponse> {
+    const response = await fetch(`${API_BASE_URL}/api/v1/auth/signup`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'DENY',
+        'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+      },
+      body: JSON.stringify({ email, password }),
+      credentials: 'include',
+    });
+    return response.json();
+  },
+
+  async signOut(): Promise<void> {
+    await fetch(`${API_BASE_URL}/api/v1/auth/signout`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+  },
   async verifyDocument(documentData: { encrypted: string; key: string }): Promise<VerificationResponse> {
     const response = await fetch(`${API_BASE_URL}/api/v1/verification/document`, {
       method: 'POST',
