@@ -6,13 +6,13 @@ import { AppError } from '../../common/middleware/error';
 import { DatabaseAdapter } from '../../common/adapters/database.adapter';
 import { adapterFactory } from '../../common/adapters';
 
-interface EmailVerification {
-  userId: string;
+import { BaseVerification, VerificationStatus } from '../types/base';
+
+interface EmailVerification extends BaseVerification {
   email: string;
   code: string;
   attempts: number;
   expiresAt: Date;
-  createdAt: Date;
   verifiedAt?: Date;
 }
 
@@ -52,6 +52,8 @@ export class EmailVerificationService extends BaseVerificationService<EmailVerif
       email,
       code,
       attempts: 0,
+      status: 'pending',
+      verificationId: this.generateVerificationId('email'),
       createdAt: now,
       expiresAt: new Date(now.getTime() + this.CODE_EXPIRY)
     });
