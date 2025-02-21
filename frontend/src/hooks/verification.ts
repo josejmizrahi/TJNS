@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { verificationApi } from '../lib/api/verification';
 import { useRouter } from 'next/navigation';
 
@@ -14,6 +14,11 @@ export interface VerificationStatus {
   }>;
 }
 
+export interface PhoneVerificationData {
+  phoneNumber: string;
+  code: string;
+}
+
 export function useVerificationStatus() {
   return useQuery<VerificationStatus>({
     queryKey: ['verification-status'],
@@ -23,6 +28,7 @@ export function useVerificationStatus() {
 }
 
 export function useDocumentUpload() {
+  const queryClient = useQueryClient();
   const router = useRouter();
   
   return useMutation({
@@ -35,6 +41,8 @@ export function useDocumentUpload() {
 }
 
 export function useVideoVerification() {
+  const queryClient = useQueryClient();
+  
   return useMutation({
     mutationFn: verificationApi.submitVideoVerification,
     onSuccess: () => {
@@ -44,8 +52,11 @@ export function useVideoVerification() {
 }
 
 export function usePhoneVerification() {
-  return useMutation({
-    mutationFn: verificationApi.verifyPhoneNumber,
+  const queryClient = useQueryClient();
+  
+  return useMutation<void, Error, PhoneVerificationData>({
+    mutationFn: ({ phoneNumber, code }) => 
+      verificationApi.verifyPhoneNumber(phoneNumber, code),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['verification-status'] });
     },
