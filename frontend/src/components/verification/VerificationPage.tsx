@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { VerificationStatus } from './VerificationStatus';
+import { VerificationStepper } from './VerificationStepper';
 import { DocumentUpload } from './DocumentUpload';
 import { VideoVerification } from './VideoVerification';
 import { CommunityVerification } from './CommunityVerification';
@@ -9,7 +10,7 @@ import { GovernanceVerification } from './GovernanceVerification';
 import { api } from '../../lib/api';
 // Removed unused import
 
-type VerificationLevel = 'none' | 'basic' | 'verified' | 'complete';
+import { VerificationLevel } from './VerificationStepper';
 type TimeSlot = { id: string; date: Date; available: boolean };
 
 export function VerificationPage() {
@@ -43,7 +44,9 @@ export function VerificationPage() {
   }, []);
 
   return (
-    <div className="grid gap-8 md:grid-cols-2">
+    <div className="space-y-8">
+      <VerificationStepper currentLevel={verificationLevel} />
+      <div className="grid gap-8 md:grid-cols-2">
       <VerificationStatus 
         level={verificationLevel}
         onStartVerification={async () => {
@@ -102,7 +105,7 @@ export function VerificationPage() {
               if (response.status === 'error') {
                 throw new Error(response.message);
               }
-              setVerificationLevel('verified');
+              setVerificationLevel('community');
             } catch (error) {
               console.error('Community verification failed:', error);
               throw error;
@@ -111,7 +114,7 @@ export function VerificationPage() {
         />
       )}
 
-      {verificationLevel === 'verified' && (
+      {verificationLevel === 'community' && (
         <GovernanceVerification
           onSubmit={async (data) => {
             try {
@@ -119,7 +122,7 @@ export function VerificationPage() {
               if (response.status === 'error') {
                 throw new Error(response.message);
               }
-              setVerificationLevel('complete');
+              setVerificationLevel('governance');
             } catch (error) {
               console.error('Governance verification failed:', error);
               throw error;
@@ -127,6 +130,7 @@ export function VerificationPage() {
           }}
         />
       )}
+      </div>
     </div>
   );
 }
