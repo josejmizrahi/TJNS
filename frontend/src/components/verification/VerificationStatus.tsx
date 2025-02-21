@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Shield, CheckCircle, AlertCircle } from "lucide-react"
 
 interface VerificationStatusProps {
-  level: 'none' | 'basic' | 'verified' | 'complete';
+  level: 'none' | 'basic' | 'community' | 'financial' | 'governance';
   onStartVerification: () => void;
 }
 
@@ -21,15 +21,21 @@ export function VerificationStatus({ level, onStartVerification }: VerificationS
       icon: Shield,
       color: "text-yellow-500"
     },
-    verified: {
-      title: "Identity Verified",
-      description: "Documents and KYC complete",
+    community: {
+      title: "Community Verified",
+      description: "Rabbi reference verified",
       icon: Shield,
       color: "text-blue-500"
     },
-    complete: {
-      title: "Fully Verified",
-      description: "All verifications complete",
+    financial: {
+      title: "Financial Trust",
+      description: "KYC and video verification complete",
+      icon: Shield,
+      color: "text-purple-500"
+    },
+    governance: {
+      title: "Governance Trust",
+      description: "Multi-party verification complete",
       icon: CheckCircle,
       color: "text-green-500"
     }
@@ -47,7 +53,7 @@ export function VerificationStatus({ level, onStartVerification }: VerificationS
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
-        {level !== 'complete' && (
+        {level !== 'governance' && (
           <Button 
             onClick={onStartVerification}
             className="w-full"
