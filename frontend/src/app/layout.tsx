@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Navigation } from '../components/layout/Navigation';
+import { ScrollProgress } from '../components/landing/ScrollProgress';
+import { ScrollToTop } from '../components/landing/ScrollToTop';
 import { Providers } from './providers';
 import "./globals.css";
 
@@ -24,8 +26,10 @@ export default function RootLayout({
         className={`${inter.className} antialiased min-h-screen bg-background`}
       >
         <Providers>
+          <ScrollProgress />
           <Navigation />
           <main className="container mx-auto py-8 px-4">{children}</main>
+          <ScrollToTop />
         </Providers>
       </body>
     </html>
