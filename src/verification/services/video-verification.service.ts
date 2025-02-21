@@ -4,6 +4,7 @@ import { VideoVerification } from '../types/models';
 import { auditLogger, AuditEventType } from '../../common/utils/audit';
 import { HybridStorageService } from '../../common/utils/storage';
 import { BlockchainService } from '../../common/utils/blockchain';
+import type { Buffer } from 'node:buffer';
 
 export class VideoVerificationService extends BaseVerificationService<VideoVerification> {
   private static instance: VideoVerificationService;

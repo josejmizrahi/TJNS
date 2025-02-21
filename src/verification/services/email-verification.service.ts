@@ -5,6 +5,7 @@ import { BlockchainService } from '../../common/utils/blockchain';
 import { AppError } from '../../common/middleware/error';
 import { DatabaseAdapter } from '../../common/adapters/database.adapter';
 import { adapterFactory } from '../../common/adapters';
+import type { Buffer } from 'node:buffer';
 
 import { BaseVerification } from '../types/base';
 
