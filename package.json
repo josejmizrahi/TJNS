@@ -32,8 +32,12 @@
     "xrpl": "^4.2.0"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/helmet": "^0.0.48",
+    "@types/pg": "^8.11.11",
     "@typescript-eslint/eslint-plugin": "^7.0.1",
     "@typescript-eslint/parser": "^7.0.1",
-    "eslint": "^8.57.0"
+    "eslint": "^8.57.0",
+    "zod": "^3.24.2"
   }
 }

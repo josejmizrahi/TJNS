@@ -17,8 +17,9 @@
     "baseUrl": "./",
     "paths": {
       "@/*": ["src/*"],
-      "*": ["node_modules/*"]
+      "*": ["node_modules/*", "src/types/*"]
     },
+    "typeRoots": ["./node_modules/@types", "./src/types"],
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
