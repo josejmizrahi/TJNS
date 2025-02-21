@@ -1,1 +1,1 @@
-export * from '@/verification/types/models';
+export * from './models';

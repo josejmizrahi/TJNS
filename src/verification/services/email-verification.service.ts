@@ -5,6 +5,8 @@ import { BlockchainService } from '../../common/utils/blockchain';
 import { AppError } from '../../common/middleware/error';
 import { DatabaseAdapter } from '../../common/adapters/database.adapter';
 import { adapterFactory } from '../../common/adapters';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import type { Buffer } from 'node:buffer';
 
 import { BaseVerification } from '../types/base';
 
