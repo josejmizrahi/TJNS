@@ -1,12 +1,17 @@
 'use client';
 
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { authApi } from '../lib/api/auth';
 import { useRouter } from 'next/navigation';
 
 interface AuthTokens {
   accessToken: string;
   refreshToken: string;
+}
+
+interface ResetPasswordData {
+  token: string;
+  newPassword: string;
 }
 
 // Secure token storage using HTTP-only cookies will be handled by the backend
@@ -39,6 +44,8 @@ export function useRegister() {
 }
 
 export function useVerifyEmail() {
+  const router = useRouter();
+  
   return useMutation({
     mutationFn: authApi.verifyEmail,
     onSuccess: () => {
@@ -57,8 +64,8 @@ export function useRequestPasswordReset() {
 export function useResetPassword() {
   const router = useRouter();
   
-  return useMutation({
-    mutationFn: authApi.resetPassword,
+  return useMutation<void, Error, ResetPasswordData>({
+    mutationFn: ({ token, newPassword }) => authApi.resetPassword(token, newPassword),
     onSuccess: () => {
       router.push('/auth');
     },
