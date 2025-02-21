@@ -48,11 +48,19 @@ export function useFamilyTree() {
   });
 }
 
+interface AddFamilyMemberParams {
+  identityId: string;
+  relation: 'mother' | 'father' | 'child';
+  memberId: string;
+  documents?: Array<{ type: string; file: Buffer }>;
+}
+
 export function useAddFamilyMember() {
   const queryClient = useQueryClient();
   
-  return useMutation<void, Error, FamilyMemberData>({
-    mutationFn: (data) => jewishIdApi.addFamilyMember(data),
+  return useMutation<void, Error, AddFamilyMemberParams>({
+    mutationFn: ({ identityId, relation, memberId, documents }) => 
+      jewishIdApi.addFamilyMember(identityId, relation, memberId, documents),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['family-tree'] });
       queryClient.invalidateQueries({ queryKey: ['jewish-id'] });
