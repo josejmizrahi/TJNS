@@ -52,8 +52,7 @@ export function useAddFamilyMember() {
   const queryClient = useQueryClient();
   
   return useMutation<void, Error, FamilyMemberData>({
-    mutationFn: ({ relation, memberId, documents }) => 
-      jewishIdApi.addFamilyMember(relation, memberId, documents),
+    mutationFn: (data) => jewishIdApi.addFamilyMember(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['family-tree'] });
       queryClient.invalidateQueries({ queryKey: ['jewish-id'] });
