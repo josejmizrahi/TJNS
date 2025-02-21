@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Navigation } from '../components/layout/Navigation';
+import { Providers } from './providers';
 import "./globals.css";
 
 const inter = Inter({
@@ -18,12 +19,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${inter.className} antialiased min-h-screen bg-background`}
       >
-        <Navigation />
-        <main className="container mx-auto py-8 px-4">{children}</main>
+        <Providers>
+          <Navigation />
+          <main className="container mx-auto py-8 px-4">{children}</main>
+        </Providers>
       </body>
     </html>
   );

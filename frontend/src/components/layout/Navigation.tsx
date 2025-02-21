@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Button } from "../ui/button";
 import { cn } from "../../lib/utils";
 import { User, FileText, Users, LogOut } from "lucide-react";
+import { ThemeToggle } from "../ui/theme-toggle";
 
 const navItems = [
   {
@@ -56,6 +57,7 @@ export function Navigation() {
           </div>
 
           <div className="flex items-center space-x-4">
+            <ThemeToggle />
             <Button variant="ghost" className="flex items-center space-x-2">
               <LogOut className="h-4 w-4" />
               <span>Sign Out</span>
