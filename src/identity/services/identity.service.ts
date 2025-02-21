@@ -28,7 +28,9 @@ export class IdentityService {
 
   constructor(
     storageService: HybridStorageService,
-    private blockchain: BlockchainService
+    // Required for future blockchain integration
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    private readonly blockchain: BlockchainService
   ) {
     this.storage = storageService;
     this.database = adapterFactory.getDatabaseAdapter();
@@ -193,7 +195,7 @@ export class IdentityService {
 
     if (approved) {
       // Update user verification level if all required documents are verified
-      await this.updateVerificationLevel(document.userId, VerificationLevel.VERIFIED);
+      await this.updateVerificationLevel(document.userId, VerificationLevel.COMMUNITY);
     }
   }
 
@@ -240,7 +242,7 @@ export class IdentityService {
         // No verification required
         return true;
 
-      case VerificationLevel.VERIFIED: {
+      case VerificationLevel.COMMUNITY: {
         // Requires verified ID and synagogue documents
         const documents = await this.database.getDocumentsByUserId(userId);
         const hasVerifiedId = documents.some(
@@ -252,9 +254,9 @@ export class IdentityService {
         return hasVerifiedId && hasVerifiedSynagogue;
       }
 
-      case VerificationLevel.COMPLETE:
+      case VerificationLevel.GOVERNANCE:
         // Additional requirements for complete verification
-        return user.verificationLevel === VerificationLevel.VERIFIED;
+        return user.verificationLevel === VerificationLevel.COMMUNITY;
 
       default:
         return true;

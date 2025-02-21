@@ -1,5 +1,6 @@
 // Import enums first
-import { UserRole, VerificationLevel } from '../enums/user';
+import { UserRole } from '../enums/user';
+import { VerificationLevel } from './verification';
 
 // Then do exports
 export * from './models';
@@ -9,7 +10,8 @@ export * from './jewish-id';
 
 // Re-export specific types to avoid conflicts
 export { Escrow as EscrowEntity } from './models';
-export { UserRole, VerificationLevel };
+export { UserRole };
+export { VerificationLevel };
 
 // Request Types
 export interface PaginationParams {

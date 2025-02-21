@@ -14,25 +14,25 @@ export class SupabaseStorageAdapter implements StorageAdapter {
 
   constructor(supabaseUrl: string, supabaseKey: string) {
     this.client = createClient(supabaseUrl, supabaseKey);
-    this.encryption = new EncryptionService();
+    this.encryption = EncryptionService.getInstance();
   }
 
   async uploadFile(bucket: string, path: string, file: Buffer): Promise<string> {
     // Encrypt sensitive files before upload
-    const { encryptedData, tag } = this.encryption.encrypt(file.toString('base64'));
+    const { encrypted, keyId } = await this.encryption.encrypt(file);
     
     const { data, error } = await this.client
       .storage
       .from(bucket)
-      .upload(`${path}_${tag}`, Buffer.from(encryptedData));
+      .upload(`${path}_${keyId}`, encrypted);
 
     if (error) throw error;
     return data.path;
   }
 
   async downloadFile(bucket: string, path: string): Promise<Buffer> {
-    // Extract encryption tag from path
-    const [, tag] = path.split('_');
+    // Extract key ID from path
+    const [, keyId] = path.split('_');
     
     const { data, error } = await this.client
       .storage
@@ -41,10 +41,14 @@ export class SupabaseStorageAdapter implements StorageAdapter {
 
     if (error) throw error;
 
-    // Decrypt the downloaded file
-    const encryptedContent = await data.text();
-    const decryptedContent = this.encryption.decrypt(encryptedContent, tag);
-    return Buffer.from(decryptedContent, 'base64');
+    // Get the encrypted content as a buffer
+    const encryptedContent = Buffer.from(await data.arrayBuffer());
+    
+    // Get the current key and IV for decryption
+    const { key, iv, keyId: currentKeyId } = this.encryption.getCurrentKey();
+    
+    // Decrypt the downloaded file using the key ID from the path
+    return this.encryption.decrypt(encryptedContent, key, iv, keyId || currentKeyId);
   }
 
   async deleteFile(bucket: string, path: string): Promise<void> {

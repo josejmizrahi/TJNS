@@ -1,4 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js';
+import { supabase } from '../config/supabase';
 import { User, KYCDocument } from '../types/models';
 import { TokenEntity, TokenType } from '../../blockchain/models/token.model';
 import { TokenBalance, Transaction } from '../../token/models/token.model';
@@ -64,7 +65,6 @@ export interface DatabaseAdapter {
   getMitzvahPointsRule(action: string): Promise<MitzvahPointsRuleEntity | null>;
 }
 
-import { supabase } from '../config/supabase';
 import { AppError } from '../middleware/error';
 import { JewishIdentityEntity } from '../../identity/models';
 

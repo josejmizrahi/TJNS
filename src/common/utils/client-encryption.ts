@@ -1,79 +1,52 @@
+import crypto from 'crypto';
+
 /**
- * Client-side encryption utilities for sensitive data
+ * Server-side encryption utilities for sensitive data
  */
 export class ClientEncryption {
-  private static async generateKey(): Promise<CryptoKey> {
-    return window.crypto.subtle.generateKey(
-      {
-        name: 'AES-GCM',
-        length: 256
-      },
-      true,
-      ['encrypt', 'decrypt']
-    );
+  private static async generateKey(): Promise<Buffer> {
+    return crypto.randomBytes(32);
   }
 
-  private static async exportKey(key: CryptoKey): Promise<string> {
-    const exported = await window.crypto.subtle.exportKey('raw', key);
-    return btoa(String.fromCharCode(...new Uint8Array(exported)));
+  private static async exportKey(key: Buffer): Promise<string> {
+    return key.toString('base64');
   }
 
-  private static async importKey(keyData: string): Promise<CryptoKey> {
-    const keyBuffer = Uint8Array.from(atob(keyData), c => c.charCodeAt(0));
-    return window.crypto.subtle.importKey(
-      'raw',
-      keyBuffer,
-      'AES-GCM',
-      true,
-      ['encrypt', 'decrypt']
-    );
+  private static async importKey(keyData: string): Promise<Buffer> {
+    return Buffer.from(keyData, 'base64');
   }
 
   static async encryptData(data: string): Promise<{ encrypted: string; key: string }> {
     const key = await this.generateKey();
-    const iv = window.crypto.getRandomValues(new Uint8Array(12));
-    const encodedData = new TextEncoder().encode(data);
-
-    const encrypted = await window.crypto.subtle.encrypt(
-      {
-        name: 'AES-GCM',
-        iv
-      },
-      key,
-      encodedData
-    );
+    const iv = crypto.randomBytes(16);
+    const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+    
+    let encrypted = cipher.update(data, 'utf8', 'base64');
+    encrypted += cipher.final('base64');
+    const authTag = cipher.getAuthTag();
 
     const exportedKey = await this.exportKey(key);
-    const encryptedBase64 = btoa(
-      String.fromCharCode(...new Uint8Array(encrypted))
-    );
-    const ivBase64 = btoa(String.fromCharCode(...iv));
+    const ivBase64 = iv.toString('base64');
+    const authTagBase64 = authTag.toString('base64');
 
     return {
-      encrypted: `${encryptedBase64}.${ivBase64}`,
+      encrypted: `${encrypted}.${ivBase64}.${authTagBase64}`,
       key: exportedKey
     };
   }
 
   static async decryptData(encrypted: string, keyData: string): Promise<string> {
-    const [encryptedBase64, ivBase64] = encrypted.split('.');
+    const [encryptedData, ivBase64, authTagBase64] = encrypted.split('.');
     const key = await this.importKey(keyData);
-    
-    const encryptedData = Uint8Array.from(
-      atob(encryptedBase64),
-      c => c.charCodeAt(0)
-    );
-    const iv = Uint8Array.from(atob(ivBase64), c => c.charCodeAt(0));
+    const iv = Buffer.from(ivBase64, 'base64');
+    const authTag = Buffer.from(authTagBase64, 'base64');
 
-    const decrypted = await window.crypto.subtle.decrypt(
-      {
-        name: 'AES-GCM',
-        iv
-      },
-      key,
-      encryptedData
-    );
+    const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+    decipher.setAuthTag(authTag);
 
-    return new TextDecoder().decode(decrypted);
+    let decrypted = decipher.update(encryptedData, 'base64', 'utf8');
+    decrypted += decipher.final('utf8');
+
+    return decrypted;
   }
 }

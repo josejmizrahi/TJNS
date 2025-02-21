@@ -10,24 +10,26 @@ export class IPFSService {
     this.encryption = new EncryptionService();
   }
 
-  async uploadEncrypted(data: string): Promise<{ cid: string; tag: string }> {
-    const { encryptedData, tag } = this.encryption.encrypt(data);
-    const result = await this.client.add(Buffer.from(encryptedData));
+  async uploadEncrypted(data: string): Promise<{ cid: string; keyId: string }> {
+    const { encrypted, keyId } = await this.encryption.encrypt(Buffer.from(data));
+    const result = await this.client.add(encrypted);
     
     return {
       cid: result.path,
-      tag,
+      keyId,
     };
   }
 
-  async downloadEncrypted(cid: string, tag: string): Promise<string> {
+  async downloadEncrypted(cid: string, keyId: string): Promise<string> {
     const chunks = [];
     for await (const chunk of this.client.cat(cid)) {
       chunks.push(chunk);
     }
     
-    const encryptedData = Buffer.concat(chunks).toString();
-    return this.encryption.decrypt(encryptedData, tag);
+    const encryptedData = Buffer.concat(chunks);
+    const { key, iv } = this.encryption.getCurrentKey();
+    const decrypted = await this.encryption.decrypt(encryptedData, key, iv, keyId);
+    return decrypted.toString();
   }
 
   async uploadFile(file: Buffer): Promise<string> {

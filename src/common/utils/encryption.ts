@@ -16,7 +16,7 @@ export class EncryptionService {
   private readonly algorithm: string;
   private readonly KEY_LENGTH = 32; // AES-256 key length in bytes
 
-  private constructor() {
+  constructor() {
     this.algorithm = storageConfig.encryption.algorithm;
     this.oldKeys = new Map();
     this.currentKey = this.generateNewKey();
@@ -27,6 +27,15 @@ export class EncryptionService {
       EncryptionService.instance = new EncryptionService();
     }
     return EncryptionService.instance;
+  }
+
+  getCurrentKey(): { key: Buffer; iv: Buffer; keyId: string } {
+    this.rotateKeyIfNeeded();
+    return {
+      key: this.currentKey.key,
+      iv: randomBytes(16),
+      keyId: this.currentKey.id
+    };
   }
 
   private generateNewKey(): EncryptionKey {

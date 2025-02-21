@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import 'reflect-metadata';
-import { VerificationLevel } from '../../common/enums/user';
+import { VerificationLevel } from '../../common/types/verification';
 
 export enum HebrewNameType {
   BIRTH = 'birth',

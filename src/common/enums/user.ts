@@ -5,13 +5,7 @@ export enum UserRole {
   MODERATOR = 'moderator'
 }
 
-export enum VerificationLevel {
-  NONE = 'none',
-  BASIC = 'basic', // Level 1: Baseline Trust
-  COMMUNITY = 'community', // Level 2: Community Trust
-  FINANCIAL = 'financial', // Level 3: Financial Trust
-  GOVERNANCE = 'governance' // Level 4: Governance Trust
-}
+// Moved to ../types/verification.ts
 
 export enum UserStatus {
   PENDING = 'pending',

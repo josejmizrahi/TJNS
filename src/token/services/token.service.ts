@@ -2,7 +2,7 @@
 import { BlockchainService } from '../../common/utils/blockchain';
 import { TokenType, TransactionStatus, TrustLineStatus } from '../../blockchain/types';
 import { Transaction, TransactionType } from '../models/token.model';
-import { VerificationLevel } from '../../common/enums/user';
+import { VerificationLevel } from '../../common/types/verification';
 import { AppError } from '../../common/middleware/error';
 import { blockchainConfig } from '../../common/config/blockchain';
 import { adapterFactory } from '../../common/adapters';

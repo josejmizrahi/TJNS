@@ -1,4 +1,5 @@
-import { VerificationLevel, UserRole, UserStatus } from '../enums/user';
+import { UserRole, UserStatus } from '../enums/user';
+import { VerificationLevel } from '../types/verification';
 import { DocumentType, DocumentStatus } from '../enums/document';
 import { TokenType } from '../../blockchain/types';
 

@@ -1,6 +1,10 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, RequestHandler } from 'express';
 import { supabase } from '../config/supabase';
-import { UserRole, VerificationLevel } from '../types/models';
+import { UserRole } from '../types/models';
+import { VerificationLevel } from '../types/verification';
+
+type AuthRequestHandler = RequestHandler<any, any, any, any, { user?: { id: string; role: UserRole; verificationLevel: VerificationLevel; email?: string; } }>;
+type AuthMiddleware = AuthRequestHandler;
 
 export interface AuthRequest extends Request {
   user?: {
@@ -11,11 +15,7 @@ export interface AuthRequest extends Request {
   };
 }
 
-export const authenticate = async (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-) => {
+export const authenticate: AuthMiddleware = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
     
@@ -48,13 +48,14 @@ export const authenticate = async (
     };
 
     next();
+    return;
   } catch (error) {
     return res.status(401).json({ message: 'Invalid token' });
   }
 };
 
-export const authorize = (...roles: UserRole[]) => {
-  return (req: AuthRequest, res: Response, next: NextFunction) => {
+export const authorize = (...roles: UserRole[]): AuthMiddleware => {
+  return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({ message: 'Authentication required' });
     }
@@ -64,11 +65,12 @@ export const authorize = (...roles: UserRole[]) => {
     }
 
     next();
+    return;
   };
 };
 
-export const requireVerificationLevel = (level: VerificationLevel) => {
-  return (req: AuthRequest, res: Response, next: NextFunction) => {
+export const requireVerificationLevel = (level: VerificationLevel): AuthMiddleware => {
+  return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({ message: 'Authentication required' });
     }
@@ -76,8 +78,9 @@ export const requireVerificationLevel = (level: VerificationLevel) => {
     const verificationLevels = [
       VerificationLevel.NONE,
       VerificationLevel.BASIC,
-      VerificationLevel.VERIFIED,
-      VerificationLevel.COMPLETE
+      VerificationLevel.COMMUNITY,
+      VerificationLevel.FINANCIAL,
+      VerificationLevel.GOVERNANCE
     ];
     
     const userLevel = verificationLevels.indexOf(req.user.verificationLevel);
@@ -90,5 +93,6 @@ export const requireVerificationLevel = (level: VerificationLevel) => {
     }
 
     next();
+    return;
   };
 };
