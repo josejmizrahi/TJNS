@@ -10,7 +10,7 @@ import { GovernanceVerification } from './GovernanceVerification';
 import { api } from '../../lib/api';
 // Removed unused import
 
-type VerificationLevel = 'none' | 'basic' | 'verified' | 'complete';
+import { VerificationLevel } from './VerificationStepper';
 type TimeSlot = { id: string; date: Date; available: boolean };
 
 export function VerificationPage() {
