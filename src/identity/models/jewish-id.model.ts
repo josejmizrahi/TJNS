@@ -2,6 +2,8 @@ import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateCol
 import 'reflect-metadata';
 import { VerificationLevel } from '../../common/enums/user';
 
+// Entity decorators
+@Entity('jewish_identities')
 export enum HebrewNameType {
   BIRTH = 'birth',
   CHOSEN = 'chosen',
@@ -23,7 +25,27 @@ export enum JewishAffiliation {
   OTHER = 'other'
 }
 
-@Entity('jewish_identities')
+export interface CreateJewishIdentityDTO {
+  userId: string;
+  hebrewName?: string;
+  hebrewNameType?: HebrewNameType;
+  affiliation?: JewishAffiliation;
+  synagogue?: string;
+  rabbi?: string;
+  community?: string;
+  phoneNumber?: string;
+  phoneCode?: string;
+  familyHistory?: {
+    maternalLineage?: string[];
+    paternalLineage?: string[];
+    conversionDetails?: {
+      date: string;
+      location: string;
+      authority: string;
+    };
+  };
+}
+
 export class JewishIdentityEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

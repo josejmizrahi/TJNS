@@ -5,6 +5,9 @@ import { adapterFactory } from '../../common/adapters/adapter-factory';
 import { HybridStorageService, StorageType } from '../../common/utils/storage';
 import { User, VerificationLevel } from '../../common/types/models';
 import { BlockchainService } from '../../common/utils/blockchain';
+import { emailVerificationService } from '../../verification/services/email-verification.service';
+import { phoneVerificationService } from '../../verification/services/phone-verification.service';
+import { requireMFA } from '../../common/middleware/mfa';
 
 export interface CreateJewishIdentityDTO {
   userId: string;
@@ -41,6 +44,7 @@ export class JewishIdentityService {
   }
 
   async createIdentity(data: CreateJewishIdentityDTO): Promise<JewishIdentityEntity> {
+    // Get user and verify existence
     const user = await this.database.getUserById(data.userId) as User;
     if (!user) {
       throw new AppError(404, 'User not found');
@@ -50,9 +54,27 @@ export class JewishIdentityService {
       throw new AppError(400, 'User already has a Jewish identity profile');
     }
 
+    // Verify email first
+    const isEmailVerified = await emailVerificationService.isEmailVerified(data.userId);
+    if (!isEmailVerified) {
+      throw new AppError(400, 'Email verification required');
+    }
+
+    // Optional phone verification
+    if (data.phoneNumber) {
+      await phoneVerificationService.verifyCode(data.phoneNumber, data.phoneCode || '', data.userId);
+    }
+
+    // Verify MFA setup
+    if (!user.profile?.mfaEnabled || !user.profile?.mfaVerified) {
+      throw new AppError(400, 'MFA setup required');
+    }
+
+    // Create identity with basic verification level
     const identity = new JewishIdentityEntity({
       ...data,
-      verifiedBy: []
+      verifiedBy: [],
+      verificationLevel: VerificationLevel.BASIC
     });
 
     const savedIdentity = await this.database.createJewishIdentity(identity);
