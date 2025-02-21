@@ -23,6 +23,27 @@ export enum JewishAffiliation {
   OTHER = 'other'
 }
 
+export interface CreateJewishIdentityDTO {
+  userId: string;
+  hebrewName?: string;
+  hebrewNameType?: HebrewNameType;
+  affiliation?: JewishAffiliation;
+  synagogue?: string;
+  rabbi?: string;
+  community?: string;
+  phoneNumber?: string;
+  phoneCode?: string;
+  familyHistory?: {
+    maternalLineage?: string[];
+    paternalLineage?: string[];
+    conversionDetails?: {
+      date: string;
+      location: string;
+      authority: string;
+    };
+  };
+}
+
 @Entity('jewish_identities')
 export class JewishIdentityEntity {
   @PrimaryGeneratedColumn('uuid')

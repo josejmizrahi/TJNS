@@ -19,6 +19,9 @@ export interface BaseEntity {
 
 export interface User extends BaseEntity {
   email: string;
+  emailVerified?: boolean;
+  phoneNumber?: string;
+  phoneVerified?: boolean;
   role: UserRole;
   verificationLevel: VerificationLevel;
   status: UserStatus;

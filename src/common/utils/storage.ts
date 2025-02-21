@@ -61,8 +61,8 @@ export class HybridStorageService {
           const [keyHex, ivHex] = tag.split(':');
           const key = Buffer.from(keyHex, 'hex');
           const iv = Buffer.from(ivHex, 'hex');
-          const encryptedContent = await this.ipfs.downloadEncrypted(path);
-          const encryptedBuffer = Buffer.from(encryptedContent, 'base64');
+          const encryptedContent = await this.ipfs.downloadFile(path);
+          const encryptedBuffer = Buffer.from(encryptedContent);
           return this.encryption.decrypt(encryptedBuffer, key, iv);
         } else {
           return this.ipfs.downloadFile(path);

@@ -1,7 +1,7 @@
 import { auditLogger, AuditEventType } from '../../common/utils/audit';
 import { HybridStorageService } from '../../common/utils/storage';
 import { BlockchainService } from '../../common/utils/blockchain';
-import { BaseVerification, VerificationStatus } from '@/verification/types/models';
+import { BaseVerification, VerificationStatus } from '../types/models';
 
 export abstract class BaseVerificationService<T extends BaseVerification> {
   protected verifications: Map<string, T>;

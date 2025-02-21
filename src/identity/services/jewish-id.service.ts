@@ -5,11 +5,15 @@ import { adapterFactory } from '../../common/adapters/adapter-factory';
 import { HybridStorageService, StorageType } from '../../common/utils/storage';
 import { User, VerificationLevel } from '../../common/types/models';
 import { BlockchainService } from '../../common/utils/blockchain';
+import { emailVerificationService } from '../../verification/services/email-verification.service';
+import { phoneVerificationService } from '../../verification/services/phone-verification.service';
 
 export interface CreateJewishIdentityDTO {
   userId: string;
   hebrewName?: string;
   hebrewNameType?: HebrewNameType;
+  phoneNumber?: string;
+  phoneCode?: string;
   affiliation?: JewishAffiliation;
   synagogue?: string;
   rabbi?: string;
@@ -41,6 +45,7 @@ export class JewishIdentityService {
   }
 
   async createIdentity(data: CreateJewishIdentityDTO): Promise<JewishIdentityEntity> {
+    // Get user and verify existence
     const user = await this.database.getUserById(data.userId) as User;
     if (!user) {
       throw new AppError(404, 'User not found');
@@ -50,9 +55,27 @@ export class JewishIdentityService {
       throw new AppError(400, 'User already has a Jewish identity profile');
     }
 
+    // Verify email first
+    const isEmailVerified = await emailVerificationService.isEmailVerified(data.userId);
+    if (!isEmailVerified) {
+      throw new AppError(400, 'Email verification required');
+    }
+
+    // Optional phone verification
+    if (data.phoneNumber) {
+      await phoneVerificationService.verifyCode(data.phoneNumber, data.phoneCode || '', data.userId);
+    }
+
+    // Verify MFA setup
+    if (!user.profile?.mfaEnabled || !user.profile?.mfaVerified) {
+      throw new AppError(400, 'MFA setup required');
+    }
+
+    // Create identity with basic verification level
     const identity = new JewishIdentityEntity({
       ...data,
-      verifiedBy: []
+      verifiedBy: [],
+      verificationLevel: VerificationLevel.BASIC
     });
 
     const savedIdentity = await this.database.createJewishIdentity(identity);
@@ -241,28 +264,61 @@ export class JewishIdentityService {
     identity: JewishIdentityEntity,
     newLevel: VerificationLevel
   ): Promise<void> {
+    const user = await this.database.getUserById(identity.userId) as User;
+    
     switch (newLevel) {
       case VerificationLevel.BASIC:
-        // Basic level only requires profile completion
+        // Baseline Trust (Level 1)
+        if (!user.emailVerified) {
+          throw new AppError(400, 'Email verification required');
+        }
+        if (!user.profile?.mfaEnabled || !user.profile?.mfaVerified) {
+          throw new AppError(400, 'MFA setup required');
+        }
         if (!identity.hebrewName || !identity.affiliation) {
-          throw new AppError(400, 'Profile must be complete for basic verification');
+          throw new AppError(400, 'Basic profile must be complete');
         }
         break;
 
-      case VerificationLevel.VERIFIED:
-        // Verified level requires documents
-        if (!identity.verificationDocuments.length) {
-          throw new AppError(400, 'Verification documents required');
+      case VerificationLevel.COMMUNITY:
+        // Community Trust (Level 2)
+        await this.validateVerificationRequirements(identity, VerificationLevel.BASIC);
+        if (!identity.synagogue || !identity.rabbi || !identity.community) {
+          throw new AppError(400, 'Community affiliation and references required');
+        }
+        if (!identity.verificationDocuments.some(doc => doc.type === 'community_reference')) {
+          throw new AppError(400, 'Community reference document required');
         }
         break;
 
-      case VerificationLevel.COMPLETE:
-        // Complete level requires verified status and family history
-        if (
-          identity.verificationLevel !== VerificationLevel.VERIFIED ||
-          !identity.familyTreeData?.nodes.length
-        ) {
-          throw new AppError(400, 'Must be verified and have family history');
+      case VerificationLevel.FINANCIAL:
+        // Financial Trust (Level 3)
+        await this.validateVerificationRequirements(identity, VerificationLevel.COMMUNITY);
+        if (!identity.verificationDocuments.some(doc => doc.type === 'government_id')) {
+          throw new AppError(400, 'Government ID verification required');
+        }
+        if (!identity.verificationDocuments.some(doc => doc.type === 'kyc_aml')) {
+          throw new AppError(400, 'KYC/AML verification required');
+        }
+        if (!identity.verificationDocuments.some(doc => doc.type === 'video_verification')) {
+          throw new AppError(400, 'Video verification required');
+        }
+        break;
+
+      case VerificationLevel.GOVERNANCE: {
+        // Governance Trust (Level 4)
+        await this.validateVerificationRequirements(identity, VerificationLevel.FINANCIAL);
+        const communityRefs = identity.verificationDocuments.filter(
+          doc => doc.type === 'community_reference'
+        );
+        if (communityRefs.length < 3) {
+          throw new AppError(400, 'At least three community references required');
+        }}
+        if (!identity.verificationDocuments.some(doc => doc.type === 'historical_validation')) {
+          throw new AppError(400, 'Historical validation required');
+        }
+        if (!identity.verificationDocuments.some(doc => doc.type === 'multi_party_verification')) {
+          throw new AppError(400, 'Multi-party verification required');
         }
         break;
 
