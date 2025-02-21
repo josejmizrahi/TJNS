@@ -8,6 +8,8 @@ import { VideoVerification } from './VideoVerification';
 import { CommunityVerification } from './CommunityVerification';
 import { MultiPartyVerification } from './MultiPartyVerification';
 import { api } from '../../lib/api';
+import { LoadingSpinner } from '../ui/loading-spinner';
+import { ErrorAlert } from '../ui/error-alert';
 // Removed unused import
 
 import { VerificationLevel } from './VerificationStepper';
@@ -16,9 +18,13 @@ type TimeSlot = { id: string; date: Date; available: boolean };
 export function VerificationPage() {
   const [availableSlots, setAvailableSlots] = React.useState<TimeSlot[]>([]);
   const [verificationLevel, setVerificationLevel] = React.useState<VerificationLevel>('none');
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState<string>();
 
   React.useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true);
+      setError(undefined);
       try {
         const [slotsResponse, statusResponse] = await Promise.all([
           api.getAvailableSlots(),
@@ -37,14 +43,20 @@ export function VerificationPage() {
         }
       } catch (error) {
         console.error('Failed to fetch initial data:', error);
+        setError('Failed to load verification data');
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchData();
   }, []);
 
+  if (isLoading) return <LoadingSpinner />;
+  if (error) return <ErrorAlert message={error} />;
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 p-4 sm:p-8 lg:p-16 xl:p-20">
       <VerificationStepper currentLevel={verificationLevel} />
       <div className="grid gap-8 md:grid-cols-2">
       <VerificationStatus 

@@ -1,13 +1,25 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Shield, CheckCircle, AlertCircle } from "lucide-react"
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
+import { ErrorAlert } from "@/components/ui/error-alert"
 
 interface VerificationStatusProps {
   level: 'none' | 'basic' | 'community' | 'financial' | 'governance';
   onStartVerification: () => void;
 }
 
-export function VerificationStatus({ level, onStartVerification }: VerificationStatusProps) {
+export function VerificationStatus({ 
+  level, 
+  onStartVerification,
+  isLoading,
+  error 
+}: VerificationStatusProps & { 
+  isLoading?: boolean;
+  error?: string;
+}) {
+  if (isLoading) return <LoadingSpinner />;
+  if (error) return <ErrorAlert message={error} />;
   const statusInfo = {
     none: {
       title: "Not Verified",

@@ -25,7 +25,7 @@ export default function RootLayout({
       >
         <Providers>
           <Navigation />
-          <main className="container mx-auto py-8 px-4">{children}</main>
+          <main className="container mx-auto">{children}</main>
         </Providers>
       </body>
     </html>
