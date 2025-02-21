@@ -7,7 +7,17 @@ interface VerificationStatusProps {
   onStartVerification: () => void;
 }
 
-export function VerificationStatus({ level, onStartVerification }: VerificationStatusProps) {
+export function VerificationStatus({ 
+  level, 
+  onStartVerification,
+  isLoading,
+  error 
+}: VerificationStatusProps & { 
+  isLoading?: boolean;
+  error?: string;
+}) {
+  if (isLoading) return <LoadingSpinner />;
+  if (error) return <ErrorAlert message={error} />;
   const statusInfo = {
     none: {
       title: "Not Verified",
