@@ -1,9 +1,10 @@
 import { StorageType } from '../../common/utils/storage';
 import { BaseVerificationService } from './base-verification.service';
-import { DocumentVerification } from '@/verification/types/models';
+import { DocumentVerification } from '../types/models';
 import { auditLogger, AuditEventType } from '../../common/utils/audit';
 import { HybridStorageService } from '../../common/utils/storage';
 import { BlockchainService } from '../../common/utils/blockchain';
+import type { Buffer } from 'node:buffer';
 
 export class KYCService extends BaseVerificationService<DocumentVerification> {
   private static instance: KYCService;

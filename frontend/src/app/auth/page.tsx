@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense } from 'react';
+import React, { Suspense } from 'react';
 import { AuthForm } from '../../components/auth/AuthForm';
 import { useSearchParams } from 'next/navigation';
 import { api } from '../../lib/api';

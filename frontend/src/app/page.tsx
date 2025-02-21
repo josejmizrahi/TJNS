@@ -1,6 +1,7 @@
+import React from 'react';
 import { VerificationPage } from '../components/verification/VerificationPage';
 
-export default function Home() {
+export default function Home(): React.ReactNode {
   return (
     <main className="min-h-screen p-8">
       <div className="max-w-7xl mx-auto space-y-8">
