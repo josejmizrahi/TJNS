@@ -50,17 +50,19 @@ export function useFamilyTree() {
 
 interface AddFamilyMemberParams {
   identityId: string;
-  relation: 'mother' | 'father' | 'child';
-  memberId: string;
-  documents?: Array<{ type: string; file: Buffer }>;
+  memberData: {
+    relation: 'mother' | 'father' | 'child';
+    memberId: string;
+    documents?: Array<{ type: string; file: Buffer }>;
+  };
 }
 
 export function useAddFamilyMember() {
   const queryClient = useQueryClient();
   
   return useMutation<void, Error, AddFamilyMemberParams>({
-    mutationFn: ({ identityId, relation, memberId, documents }) => 
-      jewishIdApi.addFamilyMember(identityId, relation, memberId, documents),
+    mutationFn: ({ identityId, memberData }) => 
+      jewishIdApi.addFamilyMember(identityId, memberData.relation, memberData.memberId, memberData.documents),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['family-tree'] });
       queryClient.invalidateQueries({ queryKey: ['jewish-id'] });
