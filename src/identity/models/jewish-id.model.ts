@@ -2,8 +2,6 @@ import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateCol
 import 'reflect-metadata';
 import { VerificationLevel } from '../../common/enums/user';
 
-// Entity decorators
-@Entity('jewish_identities')
 export enum HebrewNameType {
   BIRTH = 'birth',
   CHOSEN = 'chosen',
@@ -46,6 +44,7 @@ export interface CreateJewishIdentityDTO {
   };
 }
 
+@Entity('jewish_identities')
 export class JewishIdentityEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

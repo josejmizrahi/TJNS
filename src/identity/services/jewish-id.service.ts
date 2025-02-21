@@ -7,7 +7,6 @@ import { User, VerificationLevel } from '../../common/types/models';
 import { BlockchainService } from '../../common/utils/blockchain';
 import { emailVerificationService } from '../../verification/services/email-verification.service';
 import { phoneVerificationService } from '../../verification/services/phone-verification.service';
-import { requireMFA } from '../../common/middleware/mfa';
 
 export interface CreateJewishIdentityDTO {
   userId: string;
