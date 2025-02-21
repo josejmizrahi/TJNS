@@ -42,6 +42,11 @@ interface Reference {
   relationship: string;
 }
 
+interface MultiPartyVerificationData {
+  references: Reference[];
+  additionalNotes?: string;
+}
+
 interface GovernanceVerificationData {
   references: Reference[];
   participationHistory: string;
@@ -135,6 +140,22 @@ export const api = {
 
   async submitCommunityVerification(data: CommunityVerificationData): Promise<VerificationResponse> {
     const response = await fetch(`${API_BASE_URL}/api/v1/verification/community`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'DENY',
+        'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+      },
+      body: JSON.stringify(data),
+      credentials: 'include',
+    });
+    
+    return response.json();
+  },
+
+  async submitMultiPartyVerification(data: MultiPartyVerificationData): Promise<VerificationResponse> {
+    const response = await fetch(`${API_BASE_URL}/api/v1/verification/multi-party`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
