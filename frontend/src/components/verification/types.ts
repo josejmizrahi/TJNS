@@ -1,5 +1,16 @@
-import { VerificationLevel } from '../../common/enums/user';
-import { VerificationDocument } from '../../types/verification';
+export enum VerificationLevel {
+  NONE = 'none',
+  BASIC = 'basic',
+  COMMUNITY = 'community',
+  FINANCIAL = 'financial',
+  GOVERNANCE = 'governance'
+}
+
+export interface VerificationDocument {
+  type: string;
+  status: 'pending' | 'approved' | 'rejected';
+  verifiedAt?: string;
+}
 
 export interface VerificationStatusProps {
   level: VerificationLevel;

@@ -10,18 +10,15 @@ import { VideoVerification } from './VideoVerification';
 import { CommunityVerification } from './CommunityVerification';
 import { GovernanceVerification } from './GovernanceVerification';
 import { Alert, AlertDescription } from '../ui/alert';
-import { VerificationLevel } from '../../common/enums/user';
 import { 
+  VerificationLevel,
   VerificationStatusProps,
   DocumentUploadProps,
   VideoVerificationProps,
   CommunityVerificationProps,
-  GovernanceVerificationProps
+  GovernanceVerificationProps,
+  VerificationDocument
 } from './types';
-import { 
-  DocumentUploadData,
-  CommunityVerificationData,
-  GovernanceVerificationData,
   VideoVerificationData
 } from '../../types/verification';
 
@@ -35,13 +32,13 @@ export function VerificationPage() {
   const videoVerification = useVideoVerification();
   const phoneVerification = usePhoneVerification();
 
-  const handleDocumentUpload = async (data: DocumentUploadData) => {
+  const handleDocumentUpload = async (data: { type: string; file: File }) => {
     try {
       await documentUpload.mutateAsync({
-        ...data,
+        type: data.type,
+        file: data.file,
         metadata: {
-          ...data.metadata,
-          userId: jewishId?.id,
+          userId: jewishId?.userId,
           verificationLevel: verificationStatus?.level
         }
       });
@@ -51,15 +48,9 @@ export function VerificationPage() {
     }
   };
 
-  const handleVideoVerification = async (data: VideoVerificationData) => {
+  const handleVideoVerification = async (recording: Blob) => {
     try {
-      await videoVerification.mutateAsync({
-        ...data,
-        metadata: {
-          userId: jewishId?.id,
-          verificationLevel: verificationStatus?.level
-        }
-      });
+      await videoVerification.mutateAsync(recording);
     } catch (error) {
       console.error('Video verification failed:', error);
       throw error;
