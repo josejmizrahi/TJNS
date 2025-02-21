@@ -19,7 +19,7 @@ interface AuthResponse {
 
 interface VerificationData {
   slots?: Array<{ id: string; date: string; available: boolean }>;
-  level?: 'none' | 'basic' | 'verified' | 'complete';
+  level?: 'none' | 'basic' | 'community' | 'financial' | 'governance';
 }
 
 export interface VerificationResponse {

@@ -105,7 +105,7 @@ export function VerificationPage() {
               if (response.status === 'error') {
                 throw new Error(response.message);
               }
-              setVerificationLevel('verified');
+              setVerificationLevel('community');
             } catch (error) {
               console.error('Community verification failed:', error);
               throw error;
@@ -114,7 +114,7 @@ export function VerificationPage() {
         />
       )}
 
-      {verificationLevel === 'verified' && (
+      {verificationLevel === 'community' && (
         <GovernanceVerification
           onSubmit={async (data) => {
             try {
@@ -122,7 +122,7 @@ export function VerificationPage() {
               if (response.status === 'error') {
                 throw new Error(response.message);
               }
-              setVerificationLevel('complete');
+              setVerificationLevel('governance');
             } catch (error) {
               console.error('Governance verification failed:', error);
               throw error;
