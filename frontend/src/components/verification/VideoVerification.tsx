@@ -2,7 +2,9 @@ import * as React from 'react'
 import { useState } from 'react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "../../components/ui/card"
 import { Button } from "../../components/ui/button"
-import { Calendar, Clock, Video } from "lucide-react"
+import { Calendar, Clock, Video, Check } from "lucide-react"
+import { LoadingSpinner } from "../ui/loading-spinner"
+import { ErrorAlert } from "../ui/error-alert"
 
 interface TimeSlot {
   id: string;
@@ -18,17 +20,19 @@ interface VideoVerificationProps {
 export function VideoVerification({ onSchedule, availableSlots }: VideoVerificationProps) {
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [status, setStatus] = useState<'selecting' | 'scheduling' | 'scheduled'>('selecting');
+  const [error, setError] = useState<string>();
 
   const handleSchedule = async () => {
     if (!selectedSlot) return;
     
     try {
       setStatus('scheduling');
+      setError(undefined);
       await onSchedule(selectedSlot);
       setStatus('scheduled');
     } catch (error) {
       setStatus('selecting');
-      // Handle error
+      setError(error instanceof Error ? error.message : 'Failed to schedule video call');
     }
   };
 
@@ -69,10 +73,13 @@ export function VideoVerification({ onSchedule, availableSlots }: VideoVerificat
           )}
 
           {status === 'scheduling' && (
-            <div className="flex items-center justify-center p-4">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900" />
+            <div className="flex flex-col items-center justify-center p-4 space-y-2">
+              <LoadingSpinner />
+              <span className="text-sm text-muted-foreground">Scheduling video call...</span>
             </div>
           )}
+          
+          {error && <ErrorAlert message={error} />}
 
           {status === 'scheduled' && (
             <div className="text-center space-y-2">
