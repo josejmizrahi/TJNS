@@ -18,10 +18,15 @@ export interface VerificationStatusProps {
   onStartVerification: () => void;
 }
 
+export interface EncryptedData {
+  encrypted: string;
+  key: string;
+}
+
 export interface DocumentUploadProps {
   documentType: string;
   description: string;
-  onUpload: (file: { encrypted: string; key: string }) => Promise<void>;
+  onUpload: (file: EncryptedData) => Promise<void>;
   isLoading: boolean;
 }
 

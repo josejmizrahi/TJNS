@@ -30,13 +30,12 @@ export function VerificationPage() {
   const videoVerification = useVideoVerification();
   const phoneVerification = usePhoneVerification();
 
-  const handleDocumentUpload = async (data: { type: string; file: { encrypted: string; key: string } }) => {
+  const handleDocumentUpload = async (encryptedData: EncryptedData) => {
     try {
       await documentUpload.mutateAsync({
-        type: data.type,
-        encryptedData: data.file,
+        encryptedData,
         metadata: {
-          userId: jewishId?.userId,
+          userId: jewishId?.id,
           verificationLevel: verificationStatus?.level
         }
       });
@@ -92,13 +91,13 @@ export function VerificationPage() {
             <DocumentUpload
               documentType="government_id"
               description="Upload a government-issued ID for verification"
-              onUpload={(file) => handleDocumentUpload({ type: 'government_id', file })}
+              onUpload={(encryptedData) => handleDocumentUpload(encryptedData)}
               isLoading={documentUpload.isPending}
             />
             <DocumentUpload
               documentType="proof_of_residence"
               description="Upload proof of residence"
-              onUpload={(file) => handleDocumentUpload({ type: 'proof_of_residence', file })}
+              onUpload={(encryptedData) => handleDocumentUpload(encryptedData)}
               isLoading={documentUpload.isPending}
             />
           </>
@@ -122,7 +121,7 @@ export function VerificationPage() {
             <DocumentUpload
               documentType="synagogue_membership"
               description="Upload synagogue membership verification"
-              onUpload={(file) => handleDocumentUpload({ type: 'synagogue_membership', file })}
+              onUpload={(encryptedData) => handleDocumentUpload(encryptedData)}
               isLoading={documentUpload.isPending}
             />
           </>
@@ -138,7 +137,7 @@ export function VerificationPage() {
             <DocumentUpload
               documentType="kyc_aml"
               description="Upload KYC/AML verification documents"
-              onUpload={(file) => handleDocumentUpload({ type: 'kyc_aml', file })}
+              onUpload={(encryptedData) => handleDocumentUpload(encryptedData)}
               isLoading={documentUpload.isPending}
             />
           </>
