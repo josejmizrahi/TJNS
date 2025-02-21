@@ -12,6 +12,8 @@ export interface CreateJewishIdentityDTO {
   userId: string;
   hebrewName?: string;
   hebrewNameType?: HebrewNameType;
+  phoneNumber?: string;
+  phoneCode?: string;
   affiliation?: JewishAffiliation;
   synagogue?: string;
   rabbi?: string;
