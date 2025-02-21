@@ -10,15 +10,21 @@ import { VideoVerification } from './VideoVerification';
 import { CommunityVerification } from './CommunityVerification';
 import { GovernanceVerification } from './GovernanceVerification';
 import { Alert, AlertDescription } from '../ui/alert';
-import { 
-  VerificationLevel,
+import { VerificationLevel } from './types';
+import { encryptFile } from '../../utils/client-encryption';
+import {
+  DocumentUploadData,
   VerificationStatusProps,
   DocumentUploadProps,
   VideoVerificationProps,
   CommunityVerificationProps,
   GovernanceVerificationProps,
-  VerificationDocument
-} from './types';
+  CommunityData,
+  GovernanceData,
+  EncryptedData
+} from './verification.types';
+
+
 
 export function VerificationPage() {
   // Fetch verification status and Jewish ID data
@@ -30,24 +36,33 @@ export function VerificationPage() {
   const videoVerification = useVideoVerification();
   const phoneVerification = usePhoneVerification();
 
-  const handleDocumentUpload = async (encryptedData: EncryptedData) => {
+  const handleDocumentUpload = async (encryptedData: EncryptedData, type: string = 'document') => {
     try {
-      await documentUpload.mutateAsync({
+      const uploadData: DocumentUploadData = {
+        type,
         encryptedData,
         metadata: {
-          userId: jewishId?.id,
-          verificationLevel: verificationStatus?.level
+          userId: jewishId?.id || '',
+          verificationLevel: verificationStatus?.level || VerificationLevel.NONE
         }
-      });
+      };
+      await documentUpload.mutateAsync(uploadData);
     } catch (error) {
       console.error('Document upload failed:', error);
       throw error;
     }
   };
 
-  const handleVideoVerification = async (recording: Blob) => {
+  const handleVideoVerification = async (encryptedData: EncryptedData) => {
     try {
-      await videoVerification.mutateAsync(recording);
+      await videoVerification.mutateAsync({
+        encryptedData,
+        type: 'video',
+        metadata: {
+          userId: jewishId?.id || '',
+          verificationLevel: verificationStatus?.level || VerificationLevel.NONE
+        }
+      });
     } catch (error) {
       console.error('Video verification failed:', error);
       throw error;
@@ -107,13 +122,10 @@ export function VerificationPage() {
         {currentLevel === VerificationLevel.BASIC && (
           <>
             <CommunityVerification
-              onSubmit={async (data: CommunityVerificationData) => {
+              onSubmit={async (data: CommunityData) => {
                 for (const doc of data.documents) {
-                  await handleDocumentUpload({
-                    type: 'community_reference',
-                    file: doc,
-                    metadata: { communityData: data }
-                  });
+                  const encryptedDoc = await encryptFile(doc);
+                  await handleDocumentUpload(encryptedDoc);
                 }
               }}
               isLoading={documentUpload.isPending}
@@ -131,7 +143,9 @@ export function VerificationPage() {
         {currentLevel === VerificationLevel.COMMUNITY && (
           <>
             <VideoVerification
-              onSubmit={(recording: Blob) => handleVideoVerification({ recording })}
+              onSubmit={async (encryptedData: EncryptedData) => {
+                await handleVideoVerification(encryptedData);
+              }}
               isLoading={videoVerification.isPending}
             />
             <DocumentUpload
@@ -147,15 +161,11 @@ export function VerificationPage() {
         {currentLevel === VerificationLevel.FINANCIAL && (
           <>
             <GovernanceVerification
-              onSubmit={async (data: GovernanceVerificationData) => {
-                await handleDocumentUpload({
-                  type: 'multi_party_verification',
-                  file: data.multiPartyDocument
-                });
-                await handleDocumentUpload({
-                  type: 'historical_validation',
-                  file: data.historicalDocument
-                });
+              onSubmit={async (data: GovernanceData) => {
+                const encryptedMultiParty = await encryptFile(data.multiPartyDocument);
+                const encryptedHistorical = await encryptFile(data.historicalDocument);
+                await handleDocumentUpload(encryptedMultiParty);
+                await handleDocumentUpload(encryptedHistorical);
               }}
               isLoading={documentUpload.isPending}
             />
