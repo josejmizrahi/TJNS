@@ -12,6 +12,13 @@ import { GovernanceVerification } from './GovernanceVerification';
 import { Alert, AlertDescription } from '../ui/alert';
 import { VerificationLevel } from '../../common/enums/user';
 import { 
+  VerificationStatusProps,
+  DocumentUploadProps,
+  VideoVerificationProps,
+  CommunityVerificationProps,
+  GovernanceVerificationProps
+} from './types';
+import { 
   DocumentUploadData,
   CommunityVerificationData,
   GovernanceVerificationData,

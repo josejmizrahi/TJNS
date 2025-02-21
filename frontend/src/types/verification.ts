@@ -1,4 +1,4 @@
-import { VerificationLevel } from '../../src/common/enums/user';
+import { VerificationLevel } from '../common/enums/user';
 
 export interface VerificationDocument {
   type: string;
