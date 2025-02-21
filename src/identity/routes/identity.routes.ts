@@ -1,4 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import { Request as ExpressRequest } from 'express-serve-static-core';
 import { authenticate, authorize } from '../../common/middleware/auth';
 import { requireMFA } from '../../common/middleware';
 import identityController from '../controllers/identity.controller';
@@ -12,19 +13,17 @@ import { auditLogger, AuditEventType } from '../../common/utils/audit';
 import { verificationRateLimit, documentRateLimit, mfaRateLimit } from './rate-limits';
 import multer from 'multer';
 
-// Import multer types
-import { Request as MulterRequest } from 'express-serve-static-core';
-
-interface RequestWithFiles extends MulterRequest {
-  file?: Express.Multer.File;
-  files?: Express.Multer.File[];
+// Define request type with files
+interface RequestWithFiles extends ExpressRequest {
+  file?: any; // Multer adds this
+  files?: any[]; // Multer adds this
   user?: {
     id: string;
     [key: string]: unknown;
   };
 }
 
-const router = Router();
+const router: Router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Public routes
