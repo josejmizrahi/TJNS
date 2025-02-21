@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { ParamsDictionary } from 'express-serve-static-core';
+// Import express types
 import { authenticate, authorize } from '../../common/middleware/auth';
 import { requireMFA } from '../../common/middleware';
 import identityController from '../controllers/identity.controller';
@@ -13,18 +13,11 @@ import { auditLogger, AuditEventType } from '../../common/utils/audit';
 import { verificationRateLimit, documentRateLimit, mfaRateLimit } from './rate-limits';
 import multer from 'multer';
 
-// Define request type with files
-interface RequestWithFiles extends Request {
-  params: ParamsDictionary;
-  file?: Express.Multer.File;
-  files?: Express.Multer.File[];
-  user?: {
-    id: string;
-    [key: string]: unknown;
-  };
-}
-
+// Create router instance
 const router: Router = Router();
+
+// Define multer request type
+type MulterRequest = Request & { file?: Express.Multer.File };
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Public routes
@@ -117,7 +110,7 @@ router.post(
   requireMFA,
   documentRateLimit,
   upload.single('file'),
-  async (req: RequestWithFiles, res: Response, next: NextFunction) => {
+  async (req: MulterRequest, res: Response, next: NextFunction) => {
     try {
       await jewishIdentityService.uploadVerificationDocument(
         req.params.id,
@@ -156,7 +149,7 @@ router.post(
   requireMFA,
   documentRateLimit,
   upload.array('documents'),
-  async (req: RequestWithFiles, res: Response, next: NextFunction) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
       await jewishIdentityService.addFamilyMember(
         req.params.id,

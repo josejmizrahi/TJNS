@@ -6,7 +6,7 @@ import { AppError } from '../../common/middleware/error';
 import { DatabaseAdapter } from '../../common/adapters/database.adapter';
 import { adapterFactory } from '../../common/adapters';
 
-import { BaseVerification, VerificationStatus } from '../types/base';
+import { BaseVerification } from '../types/base';
 
 interface EmailVerification extends BaseVerification {
   email: string;

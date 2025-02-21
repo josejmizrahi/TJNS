@@ -138,13 +138,15 @@ export class BlockchainService {
       value: string;
     };
     
-    const balance = balances.find((b: any): b is XRPLBalance => 
-      b && typeof b === 'object' &&
-      typeof b.currency === 'string' &&
-      typeof b.issuer === 'string' &&
-      typeof b.value === 'string' &&
-      b.currency === currency &&
-      b.issuer === blockchainConfig.coldWallet
+    const balance = balances.find((b: unknown): b is XRPLBalance => {
+      if (!b || typeof b !== 'object') return false;
+      const bal = b as Record<string, unknown>;
+      return typeof bal.currency === 'string' &&
+        typeof bal.issuer === 'string' &&
+        typeof bal.value === 'string' &&
+        bal.currency === currency &&
+        bal.issuer === blockchainConfig.coldWallet;
+    }
     );
 
     const xrplBalance = balance ? balance.value : '0';

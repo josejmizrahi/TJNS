@@ -305,7 +305,7 @@ export class JewishIdentityService {
         }
         break;
 
-      case VerificationLevel.GOVERNANCE:
+      case VerificationLevel.GOVERNANCE: {
         // Governance Trust (Level 4)
         await this.validateVerificationRequirements(identity, VerificationLevel.FINANCIAL);
         const communityRefs = identity.verificationDocuments.filter(
@@ -313,7 +313,7 @@ export class JewishIdentityService {
         );
         if (communityRefs.length < 3) {
           throw new AppError(400, 'At least three community references required');
-        }
+        }}
         if (!identity.verificationDocuments.some(doc => doc.type === 'historical_validation')) {
           throw new AppError(400, 'Historical validation required');
         }
