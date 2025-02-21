@@ -4,6 +4,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { jewishIdApi, JewishIDData } from '../lib/api/jewish-id';
 import { useRouter } from 'next/navigation';
 
+interface FamilyMemberData {
+  relation: 'mother' | 'father' | 'child';
+  memberId: string;
+  documents?: Array<{ type: string; file: Buffer }>;
+}
+
 export function useJewishID() {
   return useQuery<JewishIDData>({
     queryKey: ['jewish-id'],
@@ -45,8 +51,9 @@ export function useFamilyTree() {
 export function useAddFamilyMember() {
   const queryClient = useQueryClient();
   
-  return useMutation({
-    mutationFn: jewishIdApi.addFamilyMember,
+  return useMutation<void, Error, FamilyMemberData>({
+    mutationFn: ({ relation, memberId, documents }) => 
+      jewishIdApi.addFamilyMember(relation, memberId, documents),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['family-tree'] });
       queryClient.invalidateQueries({ queryKey: ['jewish-id'] });
