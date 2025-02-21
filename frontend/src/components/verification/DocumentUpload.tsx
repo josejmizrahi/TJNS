@@ -2,8 +2,10 @@ import * as React from 'react'
 import { useState } from 'react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "../../components/ui/card"
 import { Button } from "../../components/ui/button"
-import { Upload, Check, AlertCircle } from "lucide-react"
+import { Upload, Check } from "lucide-react"
 import { ClientEncryption } from "@/utils/encryption"
+import { LoadingSpinner } from "../ui/loading-spinner"
+import { ErrorAlert } from "../ui/error-alert"
 
 interface DocumentUploadProps {
   documentType: string;
@@ -67,9 +69,9 @@ export function DocumentUpload({ documentType, description, onUpload }: Document
           )}
           
           {status === 'uploading' && (
-            <div className="flex items-center gap-2">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900" />
-              <span>Encrypting and uploading...</span>
+            <div className="flex flex-col items-center gap-2">
+              <LoadingSpinner />
+              <span className="text-sm text-muted-foreground">Encrypting and uploading...</span>
             </div>
           )}
           
@@ -81,10 +83,7 @@ export function DocumentUpload({ documentType, description, onUpload }: Document
           )}
           
           {status === 'error' && (
-            <div className="flex items-center gap-2 text-red-500">
-              <AlertCircle className="w-6 h-6" />
-              <span>{errorMessage}</span>
-            </div>
+            <ErrorAlert message={errorMessage} />
           )}
         </div>
       </CardContent>
