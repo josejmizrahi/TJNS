@@ -6,7 +6,7 @@ import { VerificationStepper } from './VerificationStepper';
 import { DocumentUpload } from './DocumentUpload';
 import { VideoVerification } from './VideoVerification';
 import { CommunityVerification } from './CommunityVerification';
-import { GovernanceVerification } from './GovernanceVerification';
+import { MultiPartyVerification } from './MultiPartyVerification';
 import { api } from '../../lib/api';
 // Removed unused import
 
@@ -115,16 +115,16 @@ export function VerificationPage() {
       )}
 
       {verificationLevel === 'community' && (
-        <GovernanceVerification
+        <MultiPartyVerification
           onSubmit={async (data) => {
             try {
-              const response = await api.submitGovernanceVerification(data);
+              const response = await api.submitMultiPartyVerification(data);
               if (response.status === 'error') {
                 throw new Error(response.message);
               }
               setVerificationLevel('governance');
             } catch (error) {
-              console.error('Governance verification failed:', error);
+              console.error('Multi-party verification failed:', error);
               throw error;
             }
           }}
